@@ -40,29 +40,32 @@ export function QuranReader() {
   }, [selectedSurahId, selectedReciterId]);
 
   const constructAudioUrl = (surahId: number, verseId: number, reciterId: string) => {
-    const reciterIdForUrl = reciterId.replace(/_128kbps/g, '');
+    const reciterIdForUrl = reciterId.split('_')[0];
     const surahIdPadded = surahId.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
-    return `https://everyayah.com/data/${reciterIdForUrl}/${surahIdPadded}${verseIdPadded}.mp3`;
+    return `https://everyayah.com/data/${reciterIdForUrl}_128kbps/${surahIdPadded}${verseIdPadded}.mp3`;
   };
   
   const playVerse = (verseId: number) => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    setCurrentVerseId(verseId);
     const newAudioUrl = constructAudioUrl(selectedSurah.id, verseId, selectedReciterId);
     
     if (audio.src !== newAudioUrl) {
       audio.src = newAudioUrl;
     }
     
-    audio.play().then(() => {
-      setIsPlaying(true);
-      setCurrentVerseId(verseId);
-    }).catch(e => {
-        console.error(`Audio play failed for ${newAudioUrl}`, e)
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        setIsPlaying(true);
+      }).catch(error => {
+        console.error(`Audio play failed for ${newAudioUrl}`, error);
         setIsPlaying(false);
-    });
+      });
+    }
   };
 
   const handlePlayPause = () => {
@@ -71,11 +74,11 @@ export function QuranReader() {
 
     if (isPlaying) {
       audio.pause();
+      setIsPlaying(false);
     } else {
         if (currentVerseId !== null) {
             playVerse(currentVerseId);
         } else if (selectedSurah.verses.length > 0){
-            // Start from the first verse if nothing is playing
             playVerse(selectedSurah.verses[0].id);
         }
     }
@@ -104,6 +107,7 @@ export function QuranReader() {
   const handleVerseClick = (verseId: number) => {
     if (currentVerseId === verseId && isPlaying) {
       audioRef.current?.pause();
+      setIsPlaying(false);
     } else {
       playVerse(verseId);
     }
@@ -164,9 +168,9 @@ export function QuranReader() {
         
         <audio 
             ref={audioRef}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
             onEnded={playNextVerse}
+            onPause={() => setIsPlaying(false)}
+            onPlay={() => setIsPlaying(true)}
             onError={(e) => {
               console.error(`Audio Error: Failed to load source ${audioRef.current?.src}`, e);
               setIsPlaying(false);
