@@ -15,7 +15,6 @@ export function QuranReader() {
   const [selectedReciterId, setSelectedReciterId] = useState<string>(reciters[0].id);
   
   const [currentVerseId, setCurrentVerseId] = useState<number | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -26,41 +25,58 @@ export function QuranReader() {
     setIsClient(true);
   }, []);
 
+  const stopPlayback = () => {
+    setIsPlaying(false);
+    setCurrentVerseId(null);
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+    }
+  };
+
+  useEffect(() => {
+    stopPlayback();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSurahId, selectedReciterId]);
+
   const constructAudioUrl = (surahId: number, verseId: number, reciterId: string) => {
     const reciterIdForUrl = reciterId.replace(/_128kbps/g, '');
     const surahIdPadded = surahId.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
     return `https://everyayah.com/data/${reciterIdForUrl}/${surahIdPadded}${verseIdPadded}.mp3`;
   };
+  
+  const playVerse = (verseId: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-  const stopPlayback = () => {
-    setIsPlaying(false);
-    setCurrentVerseId(null);
-    setAudioUrl('');
-    if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+    const newAudioUrl = constructAudioUrl(selectedSurah.id, verseId, selectedReciterId);
+    
+    if (audio.src !== newAudioUrl) {
+      audio.src = newAudioUrl;
     }
+    
+    audio.play().then(() => {
+      setIsPlaying(true);
+      setCurrentVerseId(verseId);
+    }).catch(e => {
+        console.error(`Audio play failed for ${newAudioUrl}`, e)
+        setIsPlaying(false);
+    });
   };
 
-  // Effect to stop playback when surah or reciter changes
-  useEffect(() => {
-    stopPlayback();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSurahId, selectedReciterId]);
-
-  
   const handlePlayPause = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
     if (isPlaying) {
-      audioRef.current?.pause();
+      audio.pause();
     } else {
         if (currentVerseId !== null) {
-            audioRef.current?.play().catch(e => console.error("Audio play failed on resume:", e));
+            playVerse(currentVerseId);
         } else if (selectedSurah.verses.length > 0){
             // Start from the first verse if nothing is playing
-            const firstVerseId = selectedSurah.verses[0].id;
-            setCurrentVerseId(firstVerseId);
-            setAudioUrl(constructAudioUrl(selectedSurah.id, firstVerseId, selectedReciterId));
+            playVerse(selectedSurah.verses[0].id);
         }
     }
   };
@@ -70,8 +86,7 @@ export function QuranReader() {
     const currentVerseIndex = selectedSurah.verses.findIndex(v => v.id === currentVerseId);
     const nextVerse = selectedSurah.verses[currentVerseIndex + 1];
     if (nextVerse) {
-      setCurrentVerseId(nextVerse.id);
-      setAudioUrl(constructAudioUrl(selectedSurah.id, nextVerse.id, selectedReciterId));
+      playVerse(nextVerse.id);
     } else {
       stopPlayback(); // End of surah
     }
@@ -82,17 +97,15 @@ export function QuranReader() {
     const currentVerseIndex = selectedSurah.verses.findIndex(v => v.id === currentVerseId);
     if (currentVerseIndex > 0) {
       const prevVerse = selectedSurah.verses[currentVerseIndex - 1];
-      setCurrentVerseId(prevVerse.id);
-      setAudioUrl(constructAudioUrl(selectedSurah.id, prevVerse.id, selectedReciterId));
+      playVerse(prevVerse.id);
     }
   };
 
   const handleVerseClick = (verseId: number) => {
-    if (currentVerseId === verseId) {
-      handlePlayPause();
+    if (currentVerseId === verseId && isPlaying) {
+      audioRef.current?.pause();
     } else {
-      setCurrentVerseId(verseId);
-      setAudioUrl(constructAudioUrl(selectedSurah.id, verseId, selectedReciterId));
+      playVerse(verseId);
     }
   };
 
@@ -151,13 +164,11 @@ export function QuranReader() {
         
         <audio 
             ref={audioRef}
-            src={audioUrl}
-            autoPlay={isPlaying}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onEnded={playNextVerse}
             onError={(e) => {
-              console.error(`Audio Error: Failed to load source ${audioUrl}`, e);
+              console.error(`Audio Error: Failed to load source ${audioRef.current?.src}`, e);
               setIsPlaying(false);
             }}
         />
