@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AudioPlayer } from './audio-player';
 import type { Verse } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
@@ -18,6 +19,7 @@ export function QuranReader() {
   const [currentVerseId, setCurrentVerseId] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const { toast } = useToast();
   
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
 
@@ -36,19 +38,41 @@ export function QuranReader() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSurahId, selectedReciterId]);
 
-  const constructAudioUrl = (surahId: number, verseId: number, reciterId: string) => {
-    const surahIdPadded = surahId.toString().padStart(3, '0');
-    const verseIdPadded = verseId.toString().padStart(3, '0');
-    const remoteUrl = `https://verses.quran.com/v2/recitations/${reciterId}/mp3/${surahIdPadded}${verseIdPadded}.mp3`;
-    // Use our local proxy to get around CORS issues
-    return `/api/audio?url=${encodeURIComponent(remoteUrl)}`;
+  const fetchAudioUrl = async (surahId: number, verseId: number, reciterId: string) => {
+    try {
+      const verseKey = `${surahId}:${verseId}`;
+      const apiUrl = `https://api.quran.com/api/v4/recitations/${reciterId}/by_ayah/${verseKey}`;
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch audio file metadata');
+      }
+      const data = await response.json();
+      
+      if (data.audio_files && data.audio_files.length > 0 && data.audio_files[0].url) {
+        return `https://verses.quran.com/${data.audio_files[0].url}`;
+      } else {
+        throw new Error('Audio URL not found in API response');
+      }
+    } catch (error) {
+      console.error("Error fetching audio URL:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to get audio',
+        description: 'Could not retrieve the audio file for this verse. Please try another reciter or verse.',
+      });
+      return null;
+    }
   };
 
-  const playVerse = (verseId: number) => {
-    const newAudioUrl = constructAudioUrl(selectedSurah.id, verseId, selectedReciterId);
-    setAudioUrl(newAudioUrl);
-    setCurrentVerseId(verseId);
-    setIsPlaying(true);
+  const playVerse = async (verseId: number) => {
+    const newAudioUrl = await fetchAudioUrl(selectedSurah.id, verseId, selectedReciterId);
+    if (newAudioUrl) {
+      setAudioUrl(newAudioUrl);
+      setCurrentVerseId(verseId);
+      setIsPlaying(true);
+    } else {
+      stopPlayback();
+    }
   };
 
   const handlePlayPause = () => {
@@ -56,10 +80,8 @@ export function QuranReader() {
       setIsPlaying(false);
     } else {
       if (currentVerseId) {
-        // If a verse is selected, resume playing it
         setIsPlaying(true);
       } else if (selectedSurah.verses.length > 0) {
-        // Otherwise, start from the first verse
         playVerse(selectedSurah.verses[0].id);
       }
     }
@@ -87,7 +109,7 @@ export function QuranReader() {
 
   const handleVerseClick = (verseId: number) => {
     if (currentVerseId === verseId && isPlaying) {
-      setIsPlaying(false); // Pause if clicking the currently playing verse
+      setIsPlaying(false);
     } else {
       playVerse(verseId);
     }
@@ -152,6 +174,11 @@ export function QuranReader() {
               onPause={() => setIsPlaying(false)}
               onError={(e, data) => {
                 console.error(`Audio Error: Failed to load source ${audioUrl}`, {error: e, data: data});
+                toast({
+                  variant: "destructive",
+                  title: "Audio Playback Error",
+                  description: "Could not play the requested audio file. The reciter may not have a recording for this verse.",
+                })
                 setIsPlaying(false);
               }}
               width="0"
