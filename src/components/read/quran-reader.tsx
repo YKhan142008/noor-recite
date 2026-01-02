@@ -25,7 +25,6 @@ export function QuranReader() {
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
   
   const constructAudioUrl = (verseId: number) => {
-    // Correctly format the reciter ID for the URL.
     const reciterIdForUrl = selectedReciterId.replace(/_128kbps/g, '');
     const surahIdPadded = selectedSurah.id.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
@@ -35,39 +34,37 @@ export function QuranReader() {
   const playVerse = (verseId: number) => {
     if (audioRef.current) {
       const audioUrl = constructAudioUrl(verseId);
-      if (audioRef.current.src !== audioUrl) {
-          audioRef.current.src = audioUrl;
-      }
+      audioRef.current.src = audioUrl;
       audioRef.current.play().catch(e => console.error("Audio play failed:", e));
       setPlayingVerse(verseId);
+      setIsPlaying(true);
     }
   }
 
   const stopPlayback = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.src = '';
     }
     setPlayingVerse(null);
     setIsPlaying(false);
   }
 
   useEffect(() => {
-    // Stop playback when surah or reciter changes
     stopPlayback();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSurahId, selectedReciterId]);
   
   const handleNext = () => {
-    if (playingVerse === null) return;
-    const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
-    const nextVerse = selectedSurah.verses[currentIndex + 1];
+    const currentVerseIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
+    const nextVerse = selectedSurah.verses[currentVerseIndex + 1];
     if (nextVerse) {
       playVerse(nextVerse.id);
     } else {
       stopPlayback(); // End of surah
     }
   };
-
+  
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
@@ -106,16 +103,19 @@ export function QuranReader() {
   };
   
   const handlePrev = () => {
-    if (playingVerse === null) return;
-    const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
-    if (currentIndex > 0) {
-      playVerse(selectedSurah.verses[currentIndex - 1].id);
+    const currentVerseIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
+    if (currentVerseIndex > 0) {
+      playVerse(selectedSurah.verses[currentVerseIndex - 1].id);
     }
   };
 
   const handleVerseClick = (verseId: number) => {
-    if (playingVerse === verseId && isPlaying) {
-      audioRef.current?.pause();
+    if (playingVerse === verseId) {
+        if(isPlaying) {
+            audioRef.current?.pause();
+        } else {
+            audioRef.current?.play();
+        }
     } else {
       playVerse(verseId);
     }
