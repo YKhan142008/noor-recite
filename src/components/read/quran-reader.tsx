@@ -17,7 +17,6 @@ export function QuranReader() {
   const [currentVerseId, setCurrentVerseId] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   
-  // This state will hold the audio URL and a key to force re-mounting the audio element
   const [audioState, setAudioState] = useState<{ url: string | null; key: number }>({ url: null, key: 0 });
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -33,32 +32,28 @@ export function QuranReader() {
     setAudioState({ url: null, key: 0 });
   };
 
-  // Stop playback when surah or reciter changes
   useEffect(() => {
     stopPlayback();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSurahId, selectedReciterId]);
 
   const constructAudioUrl = (surahId: number, verseId: number, reciterId: string) => {
-    const reciterIdForUrl = reciterId.split('_')[0];
     const surahIdPadded = surahId.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
-    return `https://everyayah.com/data/${reciterIdForUrl}_128kbps/${surahIdPadded}${verseIdPadded}.mp3`;
+    return `https://everyayah.com/data/${reciterId}_128kbps/${surahIdPadded}${verseIdPadded}.mp3`;
   };
 
   const playVerse = (verseId: number) => {
     const newAudioUrl = constructAudioUrl(selectedSurah.id, verseId, selectedReciterId);
     setCurrentVerseId(verseId);
     setIsPlaying(true);
-    // By changing the key, we force React to create a new audio element, which is a robust way to handle source changes.
     setAudioState(prevState => ({ url: newAudioUrl, key: prevState.key + 1 }));
   };
 
   const handlePlayPause = () => {
     const audio = audioRef.current;
     if (!audio) {
-        // If no audio and user presses play, start with the first verse
-        if (selectedSurah.verses.length > 0) {
+        if (!isPlaying && selectedSurah.verses.length > 0) {
             playVerse(selectedSurah.verses[0].id);
         }
         return;
@@ -80,7 +75,7 @@ export function QuranReader() {
     if (nextVerse) {
       playVerse(nextVerse.id);
     } else {
-      stopPlayback(); // End of surah
+      stopPlayback();
     }
   };
   
