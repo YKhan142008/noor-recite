@@ -40,7 +40,7 @@ export function QuranReader() {
   const constructAudioUrl = (surahId: number, verseId: number, reciterId: string) => {
     const surahIdPadded = surahId.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
-    return `https://everyayah.com/data/${reciterId}/${surahIdPadded}${verseIdPadded}.mp3`;
+    return `https://verses.quran.com/wbw/recitations/${reciterId}/${surahIdPadded}_${verseIdPadded}.mp3`;
   };
 
   const playVerse = (verseId: number) => {
