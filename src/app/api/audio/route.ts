@@ -1,5 +1,5 @@
 
-import {NextRequest, NextResponse} from 'next/server';
+import {NextRequest} from 'next/server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -10,26 +10,30 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const audioResponse = await fetch(audioUrl, {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-        }
-    });
+    const audioResponse = await fetch(audioUrl);
 
     if (!audioResponse.ok) {
       return new Response(`Failed to fetch audio: ${audioResponse.status} ${audioResponse.statusText}`, {
         status: audioResponse.status,
       });
     }
-
-    const body = await audioResponse.arrayBuffer();
-
-    const headers = new Headers();
-    headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
-    headers.set('Content-Length', body.byteLength.toString());
-    headers.set('Accept-Ranges', 'bytes');
     
-    return new Response(body, { headers });
+    // Ensure we have a readable stream to pipe
+    if (!audioResponse.body) {
+      return new Response('Response body is null', { status: 500 });
+    }
+
+    const headers = new Headers({
+      'Content-Type': audioResponse.headers.get('Content-Type') || 'audio/mpeg',
+      'Content-Length': audioResponse.headers.get('Content-Length') || '',
+      'Accept-Ranges': 'bytes',
+    });
+
+    // Stream the response body directly to the client
+    return new Response(audioResponse.body, {
+      headers,
+      status: audioResponse.status,
+    });
 
   } catch (error: any) {
     console.error('Proxy Error:', error.message);
