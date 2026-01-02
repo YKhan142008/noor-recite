@@ -37,8 +37,10 @@ export function QuranReader() {
   const stopPlayback = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
     setPlayingVerse(null);
+    setIsPlaying(false);
   }
 
   useEffect(() => {
@@ -63,27 +65,26 @@ export function QuranReader() {
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    const handleError = (e: ErrorEvent) => {
+        console.error("Audio Error:", e);
+        setIsPlaying(false);
+    };
 
     audioElement.addEventListener('play', handlePlay);
     audioElement.addEventListener('pause', handlePause);
     audioElement.addEventListener('ended', handleNext);
-    audioElement.addEventListener('error', (e) => {
-      console.error("Audio Error:", e);
-      setIsPlaying(false);
-    });
+    audioElement.addEventListener('error', handleError);
 
     return () => {
       audioElement.removeEventListener('play', handlePlay);
       audioElement.removeEventListener('pause', handlePause);
       // eslint-disable-next-line react-hooks/exhaustive-deps
       audioElement.removeEventListener('ended', handleNext);
-      audioElement.removeEventListener('error', (e) => {
-        console.error("Audio Error:", e);
-        setIsPlaying(false);
-      });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      audioElement.removeEventListener('error', handleError);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSurah.id, playingVerse]); // Re-attach listeners if surah or verse changes
+  }, [playingVerse, selectedSurah.id]); // Re-attach listeners if surah or verse changes
   
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -91,7 +92,7 @@ export function QuranReader() {
     } else {
         if (playingVerse !== null) {
             audioRef.current?.play().catch(e => console.error("Audio play failed:", e));
-        } else {
+        } else if (selectedSurah.verses.length > 0){
             playVerse(selectedSurah.verses[0].id);
         }
     }
