@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import ReactPlayer from 'react-player';
 import { surahs, reciters } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,10 +17,8 @@ export function QuranReader() {
 
   const [currentVerseId, setCurrentVerseId] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   
-  const [audioState, setAudioState] = useState<{ url: string | null; key: number }>({ url: null, key: 0 });
-
-  const audioRef = useRef<HTMLAudioElement>(null);
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
 
   useEffect(() => {
@@ -29,7 +28,7 @@ export function QuranReader() {
   const stopPlayback = () => {
     setIsPlaying(false);
     setCurrentVerseId(null);
-    setAudioState({ url: null, key: 0 });
+    setAudioUrl(null);
   };
 
   useEffect(() => {
@@ -45,28 +44,20 @@ export function QuranReader() {
 
   const playVerse = (verseId: number) => {
     const newAudioUrl = constructAudioUrl(selectedSurah.id, verseId, selectedReciterId);
+    setAudioUrl(newAudioUrl);
     setCurrentVerseId(verseId);
     setIsPlaying(true);
-    setAudioState(prevState => ({ url: newAudioUrl, key: prevState.key + 1 }));
   };
 
   const handlePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio) {
-        if (!isPlaying && selectedSurah.verses.length > 0) {
-            playVerse(selectedSurah.verses[0].id);
-        }
-        return;
-    };
-
     if (isPlaying) {
-      audio.pause();
       setIsPlaying(false);
     } else {
-      if (audio.src) {
-        audio.play().catch(e => console.error("Error resuming playback:", e));
+      if (currentVerseId) {
+        // If a verse is selected, resume playing it
         setIsPlaying(true);
       } else if (selectedSurah.verses.length > 0) {
+        // Otherwise, start from the first verse
         playVerse(selectedSurah.verses[0].id);
       }
     }
@@ -94,14 +85,14 @@ export function QuranReader() {
 
   const handleVerseClick = (verseId: number) => {
     if (currentVerseId === verseId && isPlaying) {
-      handlePlayPause();
+      setIsPlaying(false); // Pause if clicking the currently playing verse
     } else {
       playVerse(verseId);
     }
   };
   
   if (!isClient) {
-    return null;
+    return null; // Don't render on the server
   }
 
   return (
@@ -149,21 +140,21 @@ export function QuranReader() {
           </div>
         </div>
         
-        {audioState.url && (
-          <audio 
-            key={audioState.key}
-            ref={audioRef}
-            src={audioState.url}
-            autoPlay
+        <div className='hidden'>
+          <ReactPlayer
+            url={audioUrl || ''}
+            playing={isPlaying}
             onEnded={playNextVerse}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            onError={(e) => {
-              console.error(`Audio Error: Failed to load source ${audioState.url}`, e);
+            onError={(e, data) => {
+              console.error(`Audio Error: Failed to load source ${audioUrl}`, {error: e, data: data});
               setIsPlaying(false);
             }}
+            width="0"
+            height="0"
           />
-        )}
+        </div>
 
         <div className="p-6 space-y-8 font-body text-lg">
           <h2 className="text-4xl font-arabic text-center font-bold text-primary" dir="rtl">
