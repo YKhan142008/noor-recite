@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect }m 'react';
+import { useState, useRef, useEffect } from 'react';
 import { surahs, reciters } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
