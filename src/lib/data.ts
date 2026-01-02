@@ -29,9 +29,9 @@ export const surahs: Surah[] = [
 ];
 
 export const reciters: Reciter[] = [
-  { id: 'alafasy', name: 'Mishary Rashid Alafasy' },
-  { id: 'sudais', name: 'Abdul Rahman Al-Sudais' },
-  { id: 'shuraim', name: 'Saud Al-Shuraim' },
+  { id: 'Mishary_road_alafasy_128kbps', name: 'Mishary Rashid Alafasy' },
+  { id: 'abdurrahmaan_as-sudais_128kbps', name: 'Abdul Rahman Al-Sudais' },
+  { id: 'saud_ash-shuraym_128kbps', name: 'Saud Al-Shuraim' },
 ];
 
 export const readingStats: { [key: string]: Stat } = {

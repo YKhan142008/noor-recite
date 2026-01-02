@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { reciters } from '@/lib/data';
@@ -11,11 +10,11 @@ type AudioPlayerProps = {
   onPlayPause: () => void;
   onNext: () => void;
   onPrev: () => void;
+  selectedReciterId: string;
+  onReciterChange: (reciterId: string) => void;
 };
 
-export function AudioPlayer({ isPlaying, onPlayPause, onNext, onPrev }: AudioPlayerProps) {
-  const [selectedReciterId, setSelectedReciterId] = useState(reciters[0].id);
-
+export function AudioPlayer({ isPlaying, onPlayPause, onNext, onPrev, selectedReciterId, onReciterChange }: AudioPlayerProps) {
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-4 rounded-lg bg-card p-4 border">
         <div className="flex items-center gap-2">
@@ -33,7 +32,7 @@ export function AudioPlayer({ isPlaying, onPlayPause, onNext, onPrev }: AudioPla
             </Button>
         </div>
         <div className='w-full md:w-auto'>
-          <Select value={selectedReciterId} onValueChange={setSelectedReciterId}>
+          <Select value={selectedReciterId} onValueChange={onReciterChange}>
             <SelectTrigger className="w-full md:w-[200px]">
               <SelectValue placeholder="Select Reciter" />
             </SelectTrigger>

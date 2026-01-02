@@ -1,42 +1,84 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { surahs } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AudioPlayer } from './audio-player';
 import type { Verse } from '@/lib/types';
+import { reciters } from '@/lib/data';
 
 export function QuranReader() {
   const [selectedSurahId, setSelectedSurahId] = useState<string>(surahs[0].id.toString());
   const [translation, setTranslation] = useState<'english' | 'indonesian'>('english');
   const [playingVerse, setPlayingVerse] = useState<number | null>(null);
+  const [selectedReciterId, setSelectedReciterId] = useState<string>(reciters[0].id);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
-
-  const handlePlay = (verseId: number) => {
-    setPlayingVerse(verseId);
-  };
   
-  const handleNext = () => {
-    if (playingVerse === null) {
-      setPlayingVerse(selectedSurah.verses[0].id);
-      return;
+  const constructAudioUrl = (verse: Verse) => {
+    const surahIdPadded = selectedSurah.id.toString().padStart(3, '0');
+    const verseIdPadded = verse.id.toString().padStart(3, '0');
+    return `https://everyayah.com/data/${selectedReciterId}/${surahIdPadded}${verseIdPadded}.mp3`;
+  };
+
+  useEffect(() => {
+    if (playingVerse !== null) {
+      const verse = selectedSurah.verses.find(v => v.id === playingVerse);
+      if (verse) {
+        const audioUrl = constructAudioUrl(verse);
+        if (audioRef.current) {
+          if (audioRef.current.src !== audioUrl) {
+            audioRef.current.src = audioUrl;
+          }
+          audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+        } else {
+          audioRef.current = new Audio(audioUrl);
+          audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+        }
+        audioRef.current.onended = () => {
+          handleNext();
+        };
+      }
+    } else {
+      audioRef.current?.pause();
     }
+  }, [playingVerse, selectedSurah, selectedReciterId]);
+
+  const handlePlayPause = () => {
+    if (playingVerse !== null) {
+      setPlayingVerse(null);
+    } else {
+      setPlayingVerse(selectedSurah.verses[0].id);
+    }
+  };
+
+  const handleNext = () => {
     const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
     if (currentIndex < selectedSurah.verses.length - 1) {
       setPlayingVerse(selectedSurah.verses[currentIndex + 1].id);
+    } else {
+      setPlayingVerse(null); // End of surah
     }
   };
   
   const handlePrev = () => {
-     if (playingVerse === null) return;
     const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
     if (currentIndex > 0) {
       setPlayingVerse(selectedSurah.verses[currentIndex - 1].id);
     }
   };
 
+  const handleSurahChange = (surahId: string) => {
+    setSelectedSurahId(surahId);
+    setPlayingVerse(null);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  }
 
   return (
     <Card className="overflow-hidden">
@@ -45,7 +87,7 @@ export function QuranReader() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium mb-1 block">Surah</label>
-              <Select value={selectedSurahId} onValueChange={setSelectedSurahId}>
+              <Select value={selectedSurahId} onValueChange={handleSurahChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Surah" />
                 </SelectTrigger>
@@ -73,9 +115,11 @@ export function QuranReader() {
             <div className="md:col-span-3">
               <AudioPlayer 
                 isPlaying={playingVerse !== null}
-                onPlayPause={() => playingVerse ? setPlayingVerse(null) : handlePlay(selectedSurah.verses[0].id)}
+                onPlayPause={handlePlayPause}
                 onNext={handleNext}
                 onPrev={handlePrev}
+                selectedReciterId={selectedReciterId}
+                onReciterChange={setSelectedReciterId}
               />
             </div>
           </div>
@@ -86,7 +130,7 @@ export function QuranReader() {
             {selectedSurah.name}
           </h2>
           {selectedSurah.verses.map((verse: Verse) => (
-            <div key={verse.id} className={`p-4 rounded-lg ${playingVerse === verse.id ? 'bg-secondary' : ''}`}>
+            <div key={verse.id} className={`p-4 rounded-lg cursor-pointer transition-colors ${playingVerse === verse.id ? 'bg-secondary' : 'hover:bg-muted/50'}`} onClick={() => setPlayingVerse(verse.id)}>
               <p className="text-3xl leading-relaxed text-right font-arabic" dir="rtl">
                 {verse.arabic} <span className="text-sm text-accent font-sans">({verse.id})</span>
               </p>
