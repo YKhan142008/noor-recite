@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ReactPlayer from 'react-player';
+import ReactPlayer from 'react-player/lazy';
 import { surahs, reciters } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -141,19 +141,26 @@ export function QuranReader() {
         </div>
         
         <div className='hidden'>
-          <ReactPlayer
-            url={audioUrl || ''}
-            playing={isPlaying}
-            onEnded={playNextVerse}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            onError={(e, data) => {
-              console.error(`Audio Error: Failed to load source ${audioUrl}`, {error: e, data: data});
-              setIsPlaying(false);
-            }}
-            width="0"
-            height="0"
-          />
+          {audioUrl && (
+            <ReactPlayer
+              url={audioUrl}
+              playing={isPlaying}
+              onEnded={playNextVerse}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onError={(e, data) => {
+                console.error(`Audio Error: Failed to load source ${audioUrl}`, {error: e, data: data});
+                setIsPlaying(false);
+              }}
+              width="0"
+              height="0"
+              config={{
+                file: {
+                  forceAudio: true,
+                }
+              }}
+            />
+          )}
         </div>
 
         <div className="p-6 space-y-8 font-body text-lg">
