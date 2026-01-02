@@ -18,66 +18,69 @@ export function QuranReader() {
 
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
   
-  const constructAudioUrl = (verse: Verse) => {
+  const constructAudioUrl = (verseId: number) => {
     const surahIdPadded = selectedSurah.id.toString().padStart(3, '0');
-    const verseIdPadded = verse.id.toString().padStart(3, '0');
+    const verseIdPadded = verseId.toString().padStart(3, '0');
     return `https://everyayah.com/data/${selectedReciterId}/${surahIdPadded}${verseIdPadded}.mp3`;
   };
 
-  useEffect(() => {
-    if (playingVerse !== null) {
-      const verse = selectedSurah.verses.find(v => v.id === playingVerse);
-      if (verse) {
-        const audioUrl = constructAudioUrl(verse);
-        if (audioRef.current) {
-          if (audioRef.current.src !== audioUrl) {
-            audioRef.current.src = audioUrl;
-          }
-          audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-        } else {
-          audioRef.current = new Audio(audioUrl);
-          audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-        }
-        audioRef.current.onended = () => {
-          handleNext();
-        };
-      }
-    } else {
-      audioRef.current?.pause();
+  const playVerse = (verseId: number) => {
+    const audioUrl = constructAudioUrl(verseId);
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.onended = handleNext;
     }
-  }, [playingVerse, selectedSurah, selectedReciterId]);
+    audioRef.current.src = audioUrl;
+    audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+    setPlayingVerse(verseId);
+  }
 
+  const stopPlayback = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setPlayingVerse(null);
+  }
+
+  useEffect(() => {
+    // Stop playback when surah or reciter changes
+    stopPlayback();
+  }, [selectedSurahId, selectedReciterId]);
+  
   const handlePlayPause = () => {
     if (playingVerse !== null) {
-      setPlayingVerse(null);
+      stopPlayback();
     } else {
-      setPlayingVerse(selectedSurah.verses[0].id);
+      playVerse(selectedSurah.verses[0].id);
     }
   };
 
   const handleNext = () => {
     const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
-    if (currentIndex < selectedSurah.verses.length - 1) {
-      setPlayingVerse(selectedSurah.verses[currentIndex + 1].id);
+    if (currentIndex !== -1 && currentIndex < selectedSurah.verses.length - 1) {
+      playVerse(selectedSurah.verses[currentIndex + 1].id);
     } else {
-      setPlayingVerse(null); // End of surah
+      stopPlayback(); // End of surah
     }
   };
   
   const handlePrev = () => {
     const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
     if (currentIndex > 0) {
-      setPlayingVerse(selectedSurah.verses[currentIndex - 1].id);
+      playVerse(selectedSurah.verses[currentIndex - 1].id);
+    }
+  };
+
+  const handleVerseClick = (verseId: number) => {
+    if (playingVerse === verseId) {
+      stopPlayback();
+    } else {
+      playVerse(verseId);
     }
   };
 
   const handleSurahChange = (surahId: string) => {
     setSelectedSurahId(surahId);
-    setPlayingVerse(null);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
   }
 
   return (
@@ -130,7 +133,7 @@ export function QuranReader() {
             {selectedSurah.name}
           </h2>
           {selectedSurah.verses.map((verse: Verse) => (
-            <div key={verse.id} className={`p-4 rounded-lg cursor-pointer transition-colors ${playingVerse === verse.id ? 'bg-secondary' : 'hover:bg-muted/50'}`} onClick={() => setPlayingVerse(verse.id)}>
+            <div key={verse.id} className={`p-4 rounded-lg cursor-pointer transition-colors ${playingVerse === verse.id ? 'bg-secondary' : 'hover:bg-muted/50'}`} onClick={() => handleVerseClick(verse.id)}>
               <p className="text-3xl leading-relaxed text-right font-arabic" dir="rtl">
                 {verse.arabic} <span className="text-sm text-accent font-sans">({verse.id})</span>
               </p>

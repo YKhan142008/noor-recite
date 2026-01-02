@@ -25,13 +25,28 @@ export const surahs: Surah[] = [
         { id: 3, arabic: 'لَمْ يَلِدْ وَلَمْ يُولَدْ', english: 'He neither begets nor is born,', indonesian: 'Dia tiada beranak dan tidak pula diperanakkan,' },
         { id: 4, arabic: 'وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ', english: 'Nor is there to Him any equivalent."', indonesian: 'dan tidak ada seorangpun yang setara dengan Dia.' },
     ]
+  },
+  {
+    id: 114,
+    name: 'الناس',
+    englishName: 'An-Nas',
+    verses: [
+      { id: 1, arabic: 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', english: 'Say, "I seek refuge in the Lord of mankind,', indonesian: 'Katakanlah: "Aku berlindung kepada Tuhan (yang memelihara dan menguasai) manusia.' },
+      { id: 2, arabic: 'مَلِكِ النَّاسِ', english: 'The Sovereign of mankind,', indonesian: 'Raja manusia.' },
+      { id: 3, arabic: 'إِلَٰهِ النَّاسِ', english: 'The God of mankind,', indonesian: 'Sembahan manusia.' },
+      { id: 4, arabic: 'مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ', english: 'From the evil of the retreating whisperer -', indonesian: 'Dari kejahatan (bisikan) syaitan yang biasa bersembunyi,' },
+      { id: 5, arabic: 'الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ', english: 'Who whispers [evil] into the breasts of mankind -', indonesian: 'yang membisikkan (kejahatan) ke dalam dada manusia,' },
+      { id: 6, arabic: 'مِنَ الْجِنَّةِ وَالنَّاسِ', english: 'From among the jinn and mankind."', indonesian: 'dari (golongan) jin dan manusia.' },
+    ]
   }
 ];
 
 export const reciters: Reciter[] = [
-  { id: 'Mishary_road_alafasy_128kbps', name: 'Mishary Rashid Alafasy' },
-  { id: 'abdurrahmaan_as-sudais_128kbps', name: 'Abdul Rahman Al-Sudais' },
-  { id: 'saud_ash-shuraym_128kbps', name: 'Saud Al-Shuraim' },
+    { id: 'Mishary_road_alafasy_128kbps', name: 'Mishary Rashid Alafasy' },
+    { id: 'abdurrahmaan_as-sudais_128kbps', name: 'Abdul Rahman Al-Sudais' },
+    { id: 'saud_ash-shuraym_128kbps', name: 'Saud Al-Shuraim' },
+    { id: 'maher_al_muaiqly_128kbps', name: 'Maher Al Muaiqly' },
+    { id: 'yasser_ad-dussary_128kbps', name: 'Yasser Ad-Dussary' },
 ];
 
 export const readingStats: { [key: string]: Stat } = {
