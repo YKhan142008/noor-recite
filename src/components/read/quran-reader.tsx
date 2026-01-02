@@ -40,7 +40,7 @@ export function QuranReader() {
   const constructAudioUrl = (surahId: number, verseId: number, reciterId: string) => {
     const surahIdPadded = surahId.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
-    return `https://everyayah.com/data/${reciterId}_128kbps/${surahIdPadded}${verseIdPadded}.mp3`;
+    return `https://everyayah.com/data/${reciterId}/${surahIdPadded}${verseIdPadded}.mp3`;
   };
 
   const playVerse = (verseId: number) => {
@@ -63,8 +63,12 @@ export function QuranReader() {
       audio.pause();
       setIsPlaying(false);
     } else {
-      audio.play().catch(e => console.error("Error resuming playback:", e));
-      setIsPlaying(true);
+      if (audio.src) {
+        audio.play().catch(e => console.error("Error resuming playback:", e));
+        setIsPlaying(true);
+      } else if (selectedSurah.verses.length > 0) {
+        playVerse(selectedSurah.verses[0].id);
+      }
     }
   };
 
