@@ -8,6 +8,7 @@ import { AudioPlayer } from './audio-player';
 import type { Verse } from '@/lib/types';
 
 export function QuranReader() {
+  const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>(surahs[0].id.toString());
   const [translation, setTranslation] = useState<'english' | 'indonesian'>('english');
   const [playingVerse, setPlayingVerse] = useState<number | null>(null);
@@ -16,10 +17,14 @@ export function QuranReader() {
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
   
   const constructAudioUrl = (verseId: number) => {
-    const reciterIdForUrl = selectedReciterId.replace('_128kbps', '');
+    const reciterIdForUrl = selectedReciterId;
     const surahIdPadded = selectedSurah.id.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
     return `https://everyayah.com/data/${reciterIdForUrl}/${surahIdPadded}${verseIdPadded}.mp3`;
@@ -65,7 +70,7 @@ export function QuranReader() {
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
-    const handleError = (e: ErrorEvent) => {
+    const handleError = (e: Event) => {
         console.error("Audio Error:", e);
         setIsPlaying(false);
     };
@@ -84,7 +89,7 @@ export function QuranReader() {
       audioElement.removeEventListener('error', handleError);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playingVerse, selectedSurah.id]); // Re-attach listeners if surah or verse changes
+  }, [playingVerse, selectedSurah.id]);
   
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -116,6 +121,10 @@ export function QuranReader() {
 
   const handleSurahChange = (surahId: string) => {
     setSelectedSurahId(surahId);
+  }
+
+  if (!isClient) {
+    return null;
   }
 
   return (
