@@ -1,20 +1,20 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { surahs } from '@/lib/data';
+import { surahs, reciters } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AudioPlayer } from './audio-player';
 import type { Verse } from '@/lib/types';
-import { reciters } from '@/lib/data';
 
 export function QuranReader() {
   const [selectedSurahId, setSelectedSurahId] = useState<string>(surahs[0].id.toString());
   const [translation, setTranslation] = useState<'english' | 'indonesian'>('english');
   const [playingVerse, setPlayingVerse] = useState<number | null>(null);
   const [selectedReciterId, setSelectedReciterId] = useState<string>(reciters[0].id);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
   
@@ -25,14 +25,12 @@ export function QuranReader() {
   };
 
   const playVerse = (verseId: number) => {
-    const audioUrl = constructAudioUrl(verseId);
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.onended = handleNext;
+    if (audioRef.current) {
+      const audioUrl = constructAudioUrl(verseId);
+      audioRef.current.src = audioUrl;
+      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+      setPlayingVerse(verseId);
     }
-    audioRef.current.src = audioUrl;
-    audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-    setPlayingVerse(verseId);
   }
 
   const stopPlayback = () => {
@@ -46,17 +44,41 @@ export function QuranReader() {
     // Stop playback when surah or reciter changes
     stopPlayback();
   }, [selectedSurahId, selectedReciterId]);
+
+  useEffect(() => {
+    const audioElement = audioRef.current;
+    if (!audioElement) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => handleNext();
+
+    audioElement.addEventListener('play', handlePlay);
+    audioElement.addEventListener('pause', handlePause);
+    audioElement.addEventListener('ended', handleEnded);
+
+    return () => {
+      audioElement.removeEventListener('play', handlePlay);
+      audioElement.removeEventListener('pause', handlePause);
+      audioElement.removeEventListener('ended', handleEnded);
+    };
+  }, [selectedSurah.id, playingVerse]); // Re-attach listeners if surah or verse changes
   
   const handlePlayPause = () => {
-    if (playingVerse !== null) {
+    if (isPlaying) {
       stopPlayback();
     } else {
-      playVerse(selectedSurah.verses[0].id);
+        if (playingVerse !== null) {
+            audioRef.current?.play().catch(e => console.error("Audio play failed:", e));
+        } else {
+            playVerse(selectedSurah.verses[0].id);
+        }
     }
   };
 
   const handleNext = () => {
-    const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
+    const currentVerseId = playingVerse ?? selectedSurah.verses[0].id - 1;
+    const currentIndex = selectedSurah.verses.findIndex(v => v.id === currentVerseId);
     if (currentIndex !== -1 && currentIndex < selectedSurah.verses.length - 1) {
       playVerse(selectedSurah.verses[currentIndex + 1].id);
     } else {
@@ -65,14 +87,15 @@ export function QuranReader() {
   };
   
   const handlePrev = () => {
-    const currentIndex = selectedSurah.verses.findIndex(v => v.id === playingVerse);
+    const currentVerseId = playingVerse ?? selectedSurah.verses[0].id + 1;
+    const currentIndex = selectedSurah.verses.findIndex(v => v.id === currentVerseId);
     if (currentIndex > 0) {
       playVerse(selectedSurah.verses[currentIndex - 1].id);
     }
   };
 
   const handleVerseClick = (verseId: number) => {
-    if (playingVerse === verseId) {
+    if (playingVerse === verseId && isPlaying) {
       stopPlayback();
     } else {
       playVerse(verseId);
@@ -117,7 +140,7 @@ export function QuranReader() {
             </div>
             <div className="md:col-span-3">
               <AudioPlayer 
-                isPlaying={playingVerse !== null}
+                isPlaying={isPlaying}
                 onPlayPause={handlePlayPause}
                 onNext={handleNext}
                 onPrev={handlePrev}
@@ -127,6 +150,7 @@ export function QuranReader() {
             </div>
           </div>
         </div>
+        <audio ref={audioRef} />
 
         <div className="p-6 space-y-8 font-body text-lg">
           <h2 className="text-4xl font-arabic text-center font-bold text-primary" dir="rtl">
