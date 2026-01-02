@@ -39,7 +39,9 @@ export function QuranReader() {
   const constructAudioUrl = (surahId: number, verseId: number, reciterId: string) => {
     const surahIdPadded = surahId.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
-    return `https://verses.quran.com/v2/recitations/${reciterId}/mp3/${surahIdPadded}${verseIdPadded}.mp3`;
+    const remoteUrl = `https://verses.quran.com/v2/recitations/${reciterId}/mp3/${surahIdPadded}${verseIdPadded}.mp3`;
+    // Use our local proxy to get around CORS issues
+    return `/api/audio?url=${encodeURIComponent(remoteUrl)}`;
   };
 
   const playVerse = (verseId: number) => {
