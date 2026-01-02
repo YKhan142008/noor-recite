@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Fetch the external audio source
     const audioResponse = await fetch(audioUrl, {
       headers: {
         // The quran.com API seems to work better with a standard user-agent.
@@ -16,6 +17,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Check if the request to the external source was successful
     if (!audioResponse.ok) {
       return new Response(
         `Failed to fetch audio: ${audioResponse.status} ${audioResponse.statusText}`,
@@ -24,42 +26,24 @@ export async function GET(req: NextRequest) {
         }
       );
     }
-
+    
+    // The body of the fetch response is already a ReadableStream.
+    // We can pass it directly to our new Response object.
     const body = audioResponse.body;
     if (!body) {
       return new Response('Response body is null', { status: 500 });
     }
 
-    // Correctly stream the response.
-    // This creates a new readable stream that can be passed directly to the Response object.
-    const readableStream = new ReadableStream({
-      start(controller) {
-        const reader = body.getReader();
-        function push() {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              controller.close();
-              return;
-            }
-            controller.enqueue(value);
-            push();
-          }).catch(err => {
-            console.error('Stream reading error:', err);
-            controller.error(err);
-          })
-        }
-        push();
-      }
-    });
-
+    // Create new headers, forwarding essential ones from the original response.
     const headers = new Headers({
       'Content-Type': audioResponse.headers.get('Content-Type') || 'audio/mpeg',
       'Content-Length': audioResponse.headers.get('Content-Length') || '',
       'Accept-Ranges': 'bytes', // Important for seeking
       'Cache-Control': 'public, max-age=31536000, immutable', // Cache the audio file
     });
-
-    return new Response(readableStream, {
+    
+    // Create a new response with the streamed body and correct headers.
+    return new Response(body, {
       headers,
       status: audioResponse.status,
     });
