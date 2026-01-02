@@ -25,6 +25,7 @@ export function QuranReader() {
   const selectedSurah = surahs.find(s => s.id.toString() === selectedSurahId) || surahs[0];
   
   const constructAudioUrl = (verseId: number) => {
+    // Ensure the reciter ID doesn't contain suffixes that break the URL
     const reciterIdForUrl = selectedReciterId.replace(/_128kbps/g, '');
     const surahIdPadded = selectedSurah.id.toString().padStart(3, '0');
     const verseIdPadded = verseId.toString().padStart(3, '0');
@@ -34,7 +35,9 @@ export function QuranReader() {
   const playVerse = (verseId: number) => {
     if (audioRef.current) {
       const audioUrl = constructAudioUrl(verseId);
-      audioRef.current.src = audioUrl;
+      if (audioRef.current.src !== audioUrl) {
+        audioRef.current.src = audioUrl;
+      }
       audioRef.current.play().catch(e => console.error(`Failed to play ${audioUrl}`, e));
       setPlayingVerse(verseId);
     }
@@ -44,12 +47,12 @@ export function QuranReader() {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      audioRef.current.src = '';
     }
     setPlayingVerse(null);
     setIsPlaying(false);
   }
 
+  // Effect to stop playback when surah or reciter changes
   useEffect(() => {
     stopPlayback();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,6 +69,7 @@ export function QuranReader() {
     }
   };
   
+  // Effect to manage audio events
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
@@ -89,7 +93,7 @@ export function QuranReader() {
       audioElement.removeEventListener('error', handleError);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playingVerse, selectedSurah.id]);
+  }, [playingVerse, selectedSurah.id]); // Re-attach listeners if the surah changes
   
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -190,3 +194,4 @@ export function QuranReader() {
     </Card>
   );
 }
+
