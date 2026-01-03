@@ -2,15 +2,23 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { allSurahs as surahs, reciters } from '@/lib/data';
+import { allSurahs as surahs, reciters, translations } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Verse, Surah, Reciter } from '@/lib/types';
+import type { Verse, Surah, Reciter, Translation } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Play, Pause, Copy, Bookmark } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
@@ -22,7 +30,8 @@ export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [translation, setTranslation] = useState<'english' | 'indonesian'>('english');
+  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('131'); // Default to Saheeh International
+  
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +51,7 @@ export function QuranReader() {
     if (isPlaying) stopPlayback();
 
     try {
-      const response = await fetch(`/api/quran?surah=${surahId}`);
+      const response = await fetch(`/api/quran?surah=${surahId}&translations=${selectedTranslationId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch surah content');
       }
@@ -52,11 +61,10 @@ export function QuranReader() {
       if (!surahInfo) throw new Error('Surah not found in metadata');
 
       const fetchedVerses: Verse[] = data.verses.map((v: any) => ({
-        id: v.verse_number,
+        id: v.id,
         arabic: v.text_uthmani,
-        english: data.translations.find((t: any) => t.verse_key === v.verse_key)?.text || '',
-        indonesian: data.indonesianTranslations.find((t: any) => t.verse_key === v.verse_key)?.text || '',
         verse_key: v.verse_key,
+        translations: v.translations || {}
       }));
 
       setSelectedSurah({
@@ -82,7 +90,7 @@ export function QuranReader() {
       fetchSurahContent(selectedSurahId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSurahId]);
+  }, [selectedSurahId, selectedTranslationId]);
 
   const stopPlayback = () => {
     if (audioRef.current) {
@@ -139,7 +147,10 @@ export function QuranReader() {
   };
 
   const playNextVerse = () => {
-    if (!currentVerseKey || !selectedSurah) return;
+    if (!currentVerseKey || !selectedSurah) {
+      stopPlayback();
+      return;
+    }
     const currentIndex = selectedSurah.verses.findIndex(v => v.verse_key === currentVerseKey);
     if (currentIndex > -1 && currentIndex < selectedSurah.verses.length - 1) {
       const nextVerseKey = selectedSurah.verses[currentIndex + 1].verse_key;
@@ -162,6 +173,10 @@ export function QuranReader() {
   };
 
   const onAudioError = (e: any) => {
+    // This prevents the error toast from showing up when we intentionally stop playback at the end of a surah
+    if (audioRef.current && !audioRef.current.src.startsWith('http')) {
+        return;
+    }
     toast({
       variant: "destructive",
       title: "Audio Playback Error",
@@ -203,6 +218,9 @@ export function QuranReader() {
   }
 
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
+  const selectedTranslationMeta = translations.find(t => t.id.toString() === selectedTranslationId);
+  const englishTranslations = translations.filter(t => t.language === 'en');
+  const urduTranslations = translations.filter(t => t.language === 'ur');
 
   return (
     <Card className="overflow-hidden">
@@ -225,16 +243,23 @@ export function QuranReader() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Translation</label>
-              <Select value={translation} onValueChange={(val: 'english' | 'indonesian') => setTranslation(val)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Translation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="indonesian">Indonesian</SelectItem>
-                </SelectContent>
-              </Select>
+                <label className="text-sm font-medium mb-1 block">Translation</label>
+                <Select value={selectedTranslationId} onValueChange={setSelectedTranslationId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Translation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <DropdownMenuLabel>English</DropdownMenuLabel>
+                      {englishTranslations.map(t => (
+                        <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Urdu</DropdownMenuLabel>
+                      {urduTranslations.map(t => (
+                        <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
             </div>
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
@@ -259,7 +284,7 @@ export function QuranReader() {
         <div className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
           {isLoading ? (
              <div className="space-y-8">
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-8" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-8 mt-8" dir="rtl">
                 <Skeleton className="h-16 w-1/2 mx-auto" />
               </h2>
               <div className="space-y-4">
@@ -270,7 +295,7 @@ export function QuranReader() {
             </div>
           ) : selectedSurah ? (
             <>
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-8 mt-8" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-8" dir="rtl">
                 {selectedSurah.name}
               </h2>
               <div className='text-center mb-8'>
@@ -285,9 +310,11 @@ export function QuranReader() {
                    <p className="text-3xl leading-relaxed font-arabic" dir="rtl">
                      بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                    </p>
-                   <p className="mt-4 text-muted-foreground text-base">
-                     In the name of Allah, the Entirely Merciful, the Especially Merciful.
-                   </p>
+                    {selectedTranslationId && (
+                       <p className="mt-4 text-muted-foreground text-base">
+                        In the name of Allah, the Entirely Merciful, the Especially Merciful.
+                       </p>
+                    )}
                  </div>
               )}
               <div className='space-y-10'>
@@ -305,7 +332,7 @@ export function QuranReader() {
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleVerseClick(verse)}>
                         {currentVerseKey === verse.verse_key && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigator.clipboard.writeText(verse.arabic + '\n' + verse[translation])}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translations && navigator.clipboard.writeText(verse.arabic + '\n' + verse.translations[selectedTranslationId])}>
                         <Copy className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -321,7 +348,12 @@ export function QuranReader() {
                         </span>
                       )}
                     </p>
-                    <p className="mt-4 text-foreground/80 leading-relaxed">{verse[translation]}</p>
+                    {selectedTranslationMeta && verse.translations && verse.translations[selectedTranslationId] && (
+                       <div className='text-left' dir="ltr">
+                        <p className="mt-4 text-foreground/80 leading-relaxed">{verse.translations[selectedTranslationId]}</p>
+                        <p className="text-sm text-muted-foreground mt-2">— {selectedTranslationMeta.author_name}, {selectedTranslationMeta.name}</p>
+                       </div>
+                    )}
                    </div>
                 </div>
               ))}
