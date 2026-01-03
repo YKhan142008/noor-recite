@@ -1,9 +1,6 @@
 
 import type { Surah, Reciter, Stat, ReadingActivity, Achievement } from './types';
 
-// This file now only contains static data for reciters and dashboard stats.
-// The surah list is still here, but the verse content will be fetched dynamically.
-
 export const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 1, name: 'الفاتحة', englishName: 'Al-Fatiha' },
   { id: 2, name: 'البقرة', englishName: 'Al-Baqarah' },
@@ -121,15 +118,12 @@ export const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 114, name: 'الناس', englishName: 'An-Nas' },
 ];
 
-// Passing surahs with empty verses to QuranReader, which will fetch them dynamically.
-export const surahs: Surah[] = allSurahs.map(s => ({ ...s, verses: [] }));
-
 export const reciters: Reciter[] = [
-    { id: '7', name: 'Mishary Rashid Alafasy', audio_url_path: 'Mishary_Bin_Rashid_Alafasy_128kbps' },
-    { id: '4', name: 'Mahmoud Khalil Al-Husary', audio_url_path: 'Husary_128kbps' },
-    { id: '1', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Abdurrahmaan_As-Sudais_128kbps' },
-    { id: '2', name: 'Saad al-Ghamdi', audio_url_path: 'Ghamadi_40kbps' },
-    { id: '5', name: 'Saud ash-Shuraym', audio_url_path: 'Saood_ash-Shuraym_128kbps' },
+    { id: 'alafasy', name: 'Mishary Rashid Alafasy', audio_url_path: 'Mishary_Bin_Rashid_Alafasy_128kbps' },
+    { id: 'husary', name: 'Mahmoud Khalil Al-Husary', audio_url_path: 'Husary_128kbps' },
+    { id: 'sudais', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Abdurrahmaan_As-Sudais_128kbps' },
+    { id: 'ghamdi', name: 'Saad al-Ghamdi', audio_url_path: 'Ghamadi_40kbps' },
+    { id: 'shuraym', name: 'Saud ash-Shuraym', audio_url_path: 'Saood_ash-Shuraym_128kbps' },
 ];
 
 export const readingStats: { [key: string]: Stat } = {

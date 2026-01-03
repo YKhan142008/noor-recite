@@ -38,8 +38,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Create a streaming response
     const body = audioResponse.body;
     
+    // Copy relevant headers from the original response to the new response
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
     responseHeaders.set('Accept-Ranges', audioResponse.headers.get('Accept-Ranges') || 'bytes');
@@ -70,4 +72,3 @@ export async function GET(request: NextRequest) {
     });
   }
 }
-

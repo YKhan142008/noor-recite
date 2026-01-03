@@ -4,7 +4,7 @@ export interface Verse {
   arabic: string;
   english: string;
   indonesian: string;
-  verse_key?: string;
+  verse_key: string;
 }
 
 export interface Surah {
