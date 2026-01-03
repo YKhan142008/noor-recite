@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -87,6 +88,7 @@ export function QuranReader() {
       audioRef.current.src = '';
     }
     setIsPlaying(false);
+    setCurrentVerseKey(null);
   };
   
   const playVerse = (verseKey: string) => {
@@ -94,7 +96,7 @@ export function QuranReader() {
     if (!verse) return;
 
     const fileId = verseKeyToEveryAyahId(verseKey);
-    const audioUrl = `https://everyayah.com/data/${selectedReciter.audio_url_path}/${fileId}.mp3`;
+    const audioUrl = `https://verses.quran.com/${selectedReciter.audio_url_path}/${fileId}.mp3`;
     
     if (audioRef.current) {
         audioRef.current.src = `/api/audio?url=${encodeURIComponent(audioUrl)}`;
@@ -113,7 +115,6 @@ export function QuranReader() {
     setCurrentVerseKey(verseKey);
     setIsPlaying(true);
     
-    // Scroll to the verse
     verseRefs.current[verseKey]?.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
@@ -126,11 +127,9 @@ export function QuranReader() {
       setIsPlaying(false);
     } else {
       if (currentVerseKey) {
-        // Resume playing current verse
         audioRef.current?.play().catch(e => console.error("Audio resume failed:", e));
         setIsPlaying(true);
       } else if (selectedSurah?.verses.length) {
-        // Start playing from the first verse
         const firstVerseKey = selectedSurah.verses[0]?.verse_key;
         if (firstVerseKey) playVerse(firstVerseKey);
       }
@@ -159,7 +158,7 @@ export function QuranReader() {
 
   const handleVerseClick = (verse: Verse) => {
     if (currentVerseKey === verse.verse_key && isPlaying) {
-      handlePlayPause(); // Pause if clicking the currently playing verse
+      handlePlayPause(); 
     } else {
       playVerse(verse.verse_key);
     }
@@ -311,3 +310,5 @@ export function QuranReader() {
     </Card>
   );
 }
+
+    

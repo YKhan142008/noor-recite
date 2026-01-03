@@ -119,11 +119,11 @@ export const allSurahs: Omit<Surah, 'verses'>[] = [
 ];
 
 export const reciters: Reciter[] = [
-    { id: 'alafasy', name: 'Mishary Rashid Alafasy', audio_url_path: 'Mishary_Bin_Rashid_Alafasy_128kbps' },
-    { id: 'husary', name: 'Mahmoud Khalil Al-Husary', audio_url_path: 'Husary_128kbps' },
-    { id: 'sudais', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Abdurrahmaan_As-Sudais_128kbps' },
-    { id: 'ghamdi', name: 'Saad al-Ghamdi', audio_url_path: 'Ghamadi_40kbps' },
-    { id: 'shuraym', name: 'Saud ash-Shuraym', audio_url_path: 'Saood_ash-Shuraym_128kbps' },
+    { id: 'alafasy', name: 'Mishary Rashid Alafasy', audio_url_path: 'Alafasy/mp3' },
+    { id: 'husary', name: 'Mahmoud Khalil Al-Husary', audio_url_path: 'Husary/mp3' },
+    { id: 'sudais', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Sudais/mp3' },
+    { id: 'ghamdi', name: 'Saad al-Ghamdi', audio_url_path: 'Ghamdi/mp3' },
+    { id: 'shuraym', name: 'Saud ash-Shuraym', audio_url_path: 'Shuraym/mp3' },
 ];
 
 export const readingStats: { [key: string]: Stat } = {
@@ -169,3 +169,5 @@ export const searchResults = [
   { surah: 'Al-Imran', verse: 133, text: 'And hasten to forgiveness from your Lord and a garden as wide as the heavens and earth, prepared for the righteous' },
   { surah: 'An-Nisa', verse: 29, text: 'O you who have believed, do not consume one another\'s wealth unjustly but only [in lawful] business by mutual consent. And do not kill yourselves [or one another]. Indeed, Allah is to you ever Merciful.' },
 ];
+
+    
