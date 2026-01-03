@@ -43,7 +43,6 @@ export function QuranReader() {
     if (isPlaying) stopPlayback();
 
     try {
-      // The API now automatically includes the active translation
       const response = await fetch(`/api/quran?surah=${surahId}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response from API.' }));
@@ -60,9 +59,12 @@ export function QuranReader() {
       if (!surahInfo) throw new Error('Surah not found in metadata');
       
       setSelectedSurah({
-        ...surahInfo,
+        id: surahInfo.id,
+        name: surahInfo.name,
+        englishName: surahInfo.englishName,
         verses: data.verses,
       });
+
       setCurrentVerseKey(null);
 
     } catch (error) {
