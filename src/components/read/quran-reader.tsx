@@ -26,7 +26,7 @@ export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('131'); // Default to Saheeh International
+  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('20'); // Default to Clear Quran
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
