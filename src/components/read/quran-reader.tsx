@@ -202,6 +202,10 @@ export function QuranReader() {
     }
   };
 
+  const getSelectedTranslationMeta = () => {
+    return translations.find(t => t.id.toString() === selectedTranslationId);
+  }
+
   if (!isClient) {
     return (
       <Card className="overflow-hidden">
@@ -360,7 +364,8 @@ export function QuranReader() {
                       </p>
                       <VerseTranslation 
                         translation={verse.translation}
-                        selectedTranslationId={selectedTranslationId}
+                        author={getSelectedTranslationMeta()?.author_name}
+                        source={getSelectedTranslationMeta()?.name}
                       />
                      </div>
                   </div>
@@ -378,5 +383,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
-    
