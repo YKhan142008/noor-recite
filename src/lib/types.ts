@@ -40,7 +40,7 @@ export interface Achievement {
 }
 
 export interface Translation {
-    id: string; // Changed to string to match new file-based IDs
+    id: string; 
     language: string;
     name: string;
     author_name: string;

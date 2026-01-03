@@ -26,7 +26,7 @@ export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('en-hilalikhan'); // Default to Hilali & Khan
+  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('85'); // Default to Hilali & Khan
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
@@ -356,9 +356,9 @@ export function QuranReader() {
                      <div className="space-y-4">
                        <p className="text-3xl lg:text-4xl leading-relaxed text-right font-arabic" dir="rtl">
                         {verse.arabic}
-                        {verse.id && (
+                        {verse.verse_key && (
                           <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
-                            {verse.id.toLocaleString('ar-SA')}
+                            {Number(verse.verse_key.split(':')[1]).toLocaleString('ar-SA')}
                           </span>
                         )}
                       </p>

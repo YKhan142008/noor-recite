@@ -79,8 +79,6 @@ export const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 75, name: 'القيامة', englishName: 'Al-Qiyamah' },
   { id: 76, name: 'الانسان', englishName: 'Al-Insan' },
   { id: 77, name: 'المرسلات', englishName: 'Al-Mursalat' },
-  { id: 78, name: 'النبإ', englishName: 'An-Naba' },
-  { id: 79, name: 'النازعات', englishName: 'An-Nazi\'at' },
   { id: 80, name: 'عبس', englishName: '\'Abasa' },
   { id: 81, name: 'التكوير', englishName: 'At-Takwir' },
   { id: 82, name: 'الإنفطار', englishName: 'Al-Infitar' },
@@ -119,13 +117,14 @@ export const allSurahs: Omit<Surah, 'verses'>[] = [
 ];
 
 export const reciters: Reciter[] = [
-    { id: 'alafasy', name: 'Mishary Rashid Alafasy', audio_url_path: 'Alafasy/mp3' },
-    { id: 'sudais', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Sudais/mp3' },
+    { id: '7', name: 'Mishary Rashid Alafasy', audio_url_path: 'Alafasy/mp3' },
+    { id: '4', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Sudais/mp3' },
 ];
 
 export const translations: Translation[] = [
-    { id: 'en-hilalikhan', language: 'english', name: 'Hilali & Khan', author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan' },
-    { id: 'ur-jalandhry', language: 'urdu', name: 'Jalandhry', author_name: 'Fateh Muhammad Jalandhry' },
+    { id: '85', language: 'english', name: 'Hilali & Khan', author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan' },
+    { id: '131', language: 'english', name: 'Dr. Mustafa Khattab', author_name: 'Dr. Mustafa Khattab'},
+    { id: '171', language: 'urdu', name: 'Fateh Muhammad Jalandhry', author_name: 'Fateh Muhammad Jalandhry' },
 ];
 
 
