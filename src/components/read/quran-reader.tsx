@@ -11,8 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
-  const [surah, ayah] = verseKey.split(":");
-  return `${surah.padStart(3, "0")}${ayah.padStart(3, "0")}`;
+  const [surah, ayah] = verseKey.split(':');
+  return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
 }
 
 export function QuranReader() {
@@ -239,7 +239,7 @@ export function QuranReader() {
               <Select value={translation} onValueChange={(val: 'english' | 'indonesian') => setTranslation(val)}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Translation" />
-                </Trigger>
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="english">English</SelectItem>
                   <SelectItem value="indonesian">Indonesian</SelectItem>
