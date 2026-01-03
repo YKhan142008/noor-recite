@@ -2,19 +2,29 @@
 import { NextResponse } from 'next/server';
 
 const QURAN_API_URL = 'https://api.quran.com/api/v4';
-// Translation IDs: 131 for English (Saheeh International), 33 for Indonesian
-const TRANSLATION_IDS = '131,33'; 
+
+// A helper function to fetch data and handle errors
+async function fetchFromQuranApi(path: string) {
+  const res = await fetch(`${QURAN_API_URL}/${path}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(`Failed to fetch ${path}: ${errorData.message || res.statusText}`);
+  }
+  return res.json();
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const surahId = searchParams.get('surah');
+  // Expect a comma-separated list of translation IDs
+  const translationIdsParam = searchParams.get('translations');
+  
+  // Default to English (Saheeh International) and Indonesian if not specified
+  const translationIds = translationIdsParam ? translationIdsParam.split(',') : ['131', '33'];
 
   if (!surahId) {
-    // Fetch list of all surahs if no ID is provided
     try {
-      const res = await fetch(`${QURAN_API_URL}/chapters`);
-      if (!res.ok) throw new Error('Failed to fetch chapters list');
-      const data = await res.json();
+      const data = await fetchFromQuranApi('chapters');
       return NextResponse.json(data);
     } catch (error: any) {
       return new NextResponse(
@@ -24,31 +34,45 @@ export async function GET(request: Request) {
     }
   }
 
-  // Fetch content for a specific surah
   try {
-    const [versesRes, translationsRes, indonesianTranslationsRes] = await Promise.all([
-      fetch(`${QURAN_API_URL}/quran/verses/uthmani?chapter_number=${surahId}`),
-      fetch(`${QURAN_API_URL}/quran/translations/131?chapter_number=${surahId}`), // English
-      fetch(`${QURAN_API_URL}/quran/translations/33?chapter_number=${surahId}`), // Indonesian
-    ]);
+    // Fetch verses and all requested translations in parallel
+    const versesPromise = fetchFromQuranApi(`quran/verses/uthmani?chapter_number=${surahId}`);
+    const translationsPromises = translationIds.map(id => 
+      fetchFromQuranApi(`quran/translations/${id}?chapter_number=${surahId}`)
+    );
 
-    if (!versesRes.ok) throw new Error('Failed to fetch verses.');
-    if (!translationsRes.ok) throw new Error('Failed to fetch English translations.');
-    if (!indonesianTranslationsRes.ok) throw new Error('Failed to fetch Indonesian translations.');
+    const [versesData, ...translationsDataArray] = await Promise.all([versesPromise, ...translationsPromises]);
 
-    const versesData = await versesRes.json();
-    const translationsData = await translationsRes.json();
-    const indonesianTranslationsData = await indonesianTranslationsRes.json();
+    // Combine translations into a more useful structure
+    const translationsMap = new Map<string, { [key: string]: string }>();
+    translationsDataArray.forEach((transData, index) => {
+        const transId = translationIds[index];
+        transData.translations.forEach((t: { verse_key: string; text: string }) => {
+            if (!translationsMap.has(t.verse_key)) {
+                translationsMap.set(t.verse_key, {});
+            }
+            translationsMap.get(t.verse_key)![transId] = t.text;
+        });
+    });
+    
+    // Attach the mapped translations to each verse
+    const combinedVerses = versesData.verses.map((verse: any) => ({
+      ...verse,
+      translations: translationsMap.get(verse.verse_key) || {},
+    }));
 
     return NextResponse.json({
-      verses: versesData.verses,
-      translations: translationsData.translations,
-      indonesianTranslations: indonesianTranslationsData.translations
+      verses: combinedVerses,
+      // We don't need to return the raw translations array anymore
     });
+
   } catch (error: any) {
+    console.error(`Error fetching data for Surah ${surahId}:`, error);
     return new NextResponse(
       JSON.stringify({ message: error.message }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
+
+    

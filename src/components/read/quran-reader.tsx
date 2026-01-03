@@ -11,14 +11,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Play, Pause, Copy, Bookmark } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { VerseTranslation } from './verse-translation';
+
+const translations: Translation[] = [
+    { id: 131, language: 'english', name: 'Saheeh International', author_name: 'Saheeh International' },
+    { id: 33, language: 'indonesian', name: 'Indonesian', author_name: 'Ministry of Religious Affairs' },
+];
 
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
@@ -51,7 +49,7 @@ export function QuranReader() {
     if (isPlaying) stopPlayback();
 
     try {
-      const response = await fetch(`/api/quran?surah=${surahId}&translations=${selectedTranslationId}`);
+      const response = await fetch(`/api/quran?surah=${surahId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch surah content');
       }
@@ -64,8 +62,27 @@ export function QuranReader() {
         id: v.id,
         arabic: v.text_uthmani,
         verse_key: v.verse_key,
-        translations: v.translations || {}
+        translations: data.translations.reduce((acc: any, trans: any) => {
+            const verseTranslation = trans.translations.find((t: any) => t.verse_key === v.verse_key);
+            if (verseTranslation) {
+                acc[trans.id] = verseTranslation.text;
+            }
+            return acc;
+        }, {})
       }));
+
+      // A quick fix to combine translations into verses
+      const apiTranslationsResponse = await fetch(`${QURAN_API_URL}/quran/translations/${selectedTranslationId}?chapter_number=${surahId}`);
+      if(apiTranslationsResponse.ok) {
+        const transData = await apiTranslationsResponse.json();
+        const translationsMap = new Map(transData.translations.map((t: any) => [t.verse_key, t.text]));
+        fetchedVerses.forEach(v => {
+            if(translationsMap.has(v.verse_key)) {
+                v.translations[selectedTranslationId] = translationsMap.get(v.verse_key)!;
+            }
+        });
+      }
+
 
       setSelectedSurah({
         ...surahInfo,
@@ -173,8 +190,8 @@ export function QuranReader() {
   };
 
   const onAudioError = (e: any) => {
-    // This prevents the error toast from showing up when we intentionally stop playback at the end of a surah
-    if (audioRef.current && !audioRef.current.src.startsWith('http')) {
+    // This prevents the error toast from showing up when we intentionally stop playback.
+    if (audioRef.current && !audioRef.current.src.includes('http')) {
         return;
     }
     toast({
@@ -246,8 +263,11 @@ export function QuranReader() {
                     <SelectValue placeholder="Select Translation" />
                   </SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="131">English - Saheeh International</SelectItem>
-                      <SelectItem value="33">Indonesian</SelectItem>
+                      {translations.map((translation) => (
+                          <SelectItem key={translation.id} value={translation.id.toString()}>
+                            {translation.name}
+                          </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
             </div>
@@ -313,37 +333,39 @@ export function QuranReader() {
                   key={verse.verse_key} 
                   ref={(el) => (verseRefs.current[verse.verse_key] = el)}
                   className={cn(
-                      'grid grid-cols-12 gap-x-4 md:gap-x-8 p-4 rounded-lg transition-colors',
+                      'p-4 rounded-lg transition-colors',
                       currentVerseKey === verse.verse_key ? 'bg-secondary' : ''
                   )}
                 >
-                  <div className='col-span-1 flex flex-col items-center space-y-4 text-sm text-muted-foreground'>
-                      <span>{verse.verse_key}</span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleVerseClick(verse)}>
-                        {currentVerseKey === verse.verse_key && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translations && navigator.clipboard.writeText(verse.arabic + '\n' + verse.translations[selectedTranslationId])}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Bookmark className="h-4 w-4" />
-                      </Button>
+                  <div className='grid grid-cols-[auto,1fr] gap-x-4 md:gap-x-8'>
+                    <div className='flex flex-col items-center space-y-4 text-sm text-muted-foreground'>
+                        <span>{verse.verse_key}</span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleVerseClick(verse)}>
+                          {currentVerseKey === verse.verse_key && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translations && navigator.clipboard.writeText(verse.arabic + '\n' + verse.translations[selectedTranslationId])}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Bookmark className="h-4 w-4" />
+                        </Button>
+                    </div>
+                     <div className="space-y-4">
+                       <p className="text-3xl lg:text-4xl leading-relaxed text-right font-arabic" dir="rtl">
+                        {verse.arabic}
+                        {verse.id && (
+                          <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
+                            {verse.id.toLocaleString('ar-SA')}
+                          </span>
+                        )}
+                      </p>
+                      <VerseTranslation 
+                        verse={verse}
+                        translations={translations}
+                        selectedTranslationId={selectedTranslationId}
+                      />
+                     </div>
                   </div>
-                   <div className="col-span-11 space-y-4">
-                     <p className="text-3xl lg:text-4xl leading-relaxed text-right font-arabic" dir="rtl">
-                      {verse.arabic}
-                      {verse.id && (
-                        <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
-                          {verse.id.toLocaleString('ar-SA')}
-                        </span>
-                      )}
-                    </p>
-                    {verse.translations && verse.translations[selectedTranslationId] && (
-                       <div className='text-left' dir="ltr">
-                        <p className="mt-4 text-foreground/80 leading-relaxed">{verse.translations[selectedTranslationId]}</p>
-                       </div>
-                    )}
-                   </div>
                 </div>
               ))}
               </div>
@@ -358,3 +380,5 @@ export function QuranReader() {
     </Card>
   );
 }
+
+    
