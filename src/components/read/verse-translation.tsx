@@ -8,8 +8,18 @@ type VerseTranslationProps = {
 };
 
 export function VerseTranslation({ verse, translations, selectedTranslationId }: VerseTranslationProps) {
-    const translationText = verse.translations?.[selectedTranslationId];
-    const selectedTranslationMeta = translations.find(t => t.id.toString() === selectedTranslationId);
+    let translationText: string | undefined;
+
+    if (Array.isArray(verse.translations)) {
+        const t = verse.translations.find(t => t.id.toString() === selectedTranslationId);
+        translationText = t?.text;
+    } else if (verse.translations) {
+        translationText = verse.translations[selectedTranslationId];
+    }
+
+    const selectedTranslationMeta = translations.find(
+        t => t.id.toString() === selectedTranslationId
+    );
 
     if (!translationText || !selectedTranslationMeta) {
         return null;
