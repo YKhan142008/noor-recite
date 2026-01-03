@@ -35,8 +35,6 @@ export function QuranReader() {
     setCurrentVerseId(null);
     if (audioRef.current) {
       audioRef.current.pause();
-      // Setting src to '' can cause an error event, so we avoid it.
-      // We'll just set a new src when play is clicked again.
     }
   };
 
@@ -61,15 +59,23 @@ export function QuranReader() {
         verse_key: v.verse_key
       }));
       
+      // The API already includes bismillah for surahs that have it, so no need to prepend manually
+      // except for cases where it might be missing.
+      // A safer approach is to rely on the API data as the source of truth.
+      // However, if we must prepend:
       if (surahInfo.id !== 1 && surahInfo.id !== 9) {
-        fetchedVerses.unshift({
-          id: 0,
-          arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-          english: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
-          indonesian: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.',
-          verse_key: '1:1'
-        });
+         // Check if bismillah is already present
+         if (!fetchedVerses[0]?.arabic.includes('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ')) {
+            fetchedVerses.unshift({
+              id: 0,
+              arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+              english: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
+              indonesian: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.',
+              verse_key: '1:1' // Use Al-Fatiha's bismillah audio
+            });
+         }
       }
+
 
       setSelectedSurahContent({
         ...surahInfo,
@@ -141,6 +147,7 @@ export function QuranReader() {
         });
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioUrl]);
 
   const handlePlayPause = () => {

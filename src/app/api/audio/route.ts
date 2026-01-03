@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const range = request.headers.get('range');
     const headers: HeadersInit = {};
     if (range) {
-      headers['range'] = range;
+      headers['Range'] = range;
     }
 
     // Fetch the audio from the external source
