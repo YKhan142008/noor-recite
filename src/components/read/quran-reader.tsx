@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Verse, Surah, Reciter } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Play, Pause, Copy, Bookmark } from 'lucide-react';
+import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { VerseTranslation } from './verse-translation';
@@ -67,6 +66,7 @@ export function QuranReader() {
       });
 
       setCurrentVerseKey(null);
+      window.scrollTo(0, 0);
 
     } catch (error) {
       toast({
@@ -204,6 +204,16 @@ export function QuranReader() {
       });
     }
   };
+  
+  const handleSurahChange = (direction: 'next' | 'previous') => {
+    const currentSurahId = parseInt(selectedSurahId, 10);
+    if (direction === 'next' && currentSurahId < 114) {
+      setSelectedSurahId((currentSurahId + 1).toString());
+    } else if (direction === 'previous' && currentSurahId > 1) {
+      setSelectedSurahId((currentSurahId - 1).toString());
+    }
+  };
+
 
   if (!isClient) {
     return (
@@ -229,6 +239,7 @@ export function QuranReader() {
   }
 
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
+  const currentSurahNum = parseInt(selectedSurahId, 10);
 
   return (
     <Card className="overflow-hidden">
@@ -361,6 +372,24 @@ export function QuranReader() {
                 </div>
               ))}
               </div>
+              <div className="flex justify-between items-center mt-12 pt-8 border-t">
+                  <Button 
+                    onClick={() => handleSurahChange('previous')} 
+                    disabled={currentSurahNum <= 1}
+                    variant="outline"
+                  >
+                    <ArrowLeft className="mr-2" />
+                    Previous Surah
+                  </Button>
+                  <Button 
+                    onClick={() => handleSurahChange('next')} 
+                    disabled={currentSurahNum >= 114}
+                    variant="outline"
+                  >
+                    Next Surah
+                    <ArrowRight className="ml-2" />
+                  </Button>
+              </div>
             </>
           ) : (
             <div className="text-center py-10">
@@ -372,3 +401,5 @@ export function QuranReader() {
     </Card>
   );
 }
+
+    
