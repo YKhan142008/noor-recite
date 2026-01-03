@@ -2,36 +2,35 @@
 import { NextResponse } from 'next/server';
 import { activeTranslation } from '@/lib/data';
 
-// A helper function to fetch original Quranic text (Uthmani script) from quran.com API v4
-async function fetchOriginalVerses(surahId: string) {
+// This new helper function fetches both verses and a specific translation in one go.
+async function fetchSurahData(surahId: string, translationId: string) {
+  // This endpoint gets the Uthmani script and attaches the requested translation.
+  const fields = 'text_uthmani';
+  const url = `https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahId}&fields=${fields}`;
+
   try {
-    const res = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahId}`);
+    const res = await fetch(url);
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(`Failed to fetch original verses from quran.com: ${errorData.message || res.statusText}`);
     }
-    return res.json();
+    const verseData = await res.json();
+
+    const translationUrl = `https://api.quran.com/api/v4/quran/translations/${translationId}?chapter_number=${surahId}`;
+    const transRes = await fetch(translationUrl);
+     if (!transRes.ok) {
+      const errorData = await transRes.json().catch(() => ({}));
+      throw new Error(`Failed to fetch translation from quran.com: ${errorData.message || transRes.statusText}`);
+    }
+    const translationData = await transRes.json();
+    
+    return { verses: verseData.verses, translations: translationData.translations };
+
   } catch (error) {
-    console.error("Error fetching original verses:", error);
-    throw new Error("Could not connect to the Quran API for Arabic text.");
+    console.error("Error fetching surah data:", error);
+    throw new Error("Could not connect to the Quran API.");
   }
 }
-
-// A helper function to fetch a specific translation from quran.com API v4
-async function fetchTranslation(translationId: string, surahId: string) {
-    try {
-      const res = await fetch(`https://api.quran.com/api/v4/quran/translations/${translationId}?chapter_number=${surahId}`);
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(`Failed to fetch translation from quran.com: ${errorData.message || res.statusText}`);
-      }
-      return res.json();
-    } catch (error) {
-      console.error(`Error fetching translation ${translationId}:`, error);
-      throw new Error("Could not connect to the Quran API for translations.");
-    }
-}
-
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -49,21 +48,18 @@ export async function GET(request: Request) {
 
   try {
     // Fetch both original verses and the fixed translation in parallel
-    const [versesData, translationData] = await Promise.all([
-      fetchOriginalVerses(surahId),
-      fetchTranslation(translationId, surahId)
-    ]);
+    const { verses, translations } = await fetchSurahData(surahId, translationId);
     
     // Create a map for quick lookup: verse_key -> translation_text
     const translationsMap = new Map<string, string>();
-    translationData.translations.forEach((t: { verse_key: string; text: string }) => {
+    translations.forEach((t: { verse_key: string; text: string }) => {
         // The API sometimes returns HTML entities, let's clean them up.
         const cleanedText = t.text.replace(/<[^>]*>/g, '');
         translationsMap.set(t.verse_key, cleanedText);
     });
 
     // Combine original verses with their corresponding translations
-    const combinedVerses = versesData.verses.map((verse: any) => ({
+    const combinedVerses = verses.map((verse: any) => ({
       id: verse.id,
       verse_key: verse.verse_key,
       arabic: verse.text_uthmani,
