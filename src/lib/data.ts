@@ -22,7 +22,7 @@ export const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 18, name: 'الكهف', englishName: 'Al-Kahf' },
   { id: 19, name: 'مريم', englishName: 'Maryam' },
   { id: 20, name: 'طه', englishName: 'Taha' },
-  { id: 21, name: 'الأنبياء', englishname: 'Al-Anbya' },
+  { id: 21, name: 'الأنبياء', englishName: 'Al-Anbya' },
   { id: 22, name: 'الحج', englishName: 'Al-Hajj' },
   { id: 23, name: 'المؤمنون', englishName: 'Al-Mu\'minun' },
   { id: 24, name: 'النور', englishName: 'An-Nur' },
@@ -129,8 +129,6 @@ export const translations: Translation[] = [
     { id: 131, language: 'english', name: 'Saheeh International', author_name: 'Saheeh International' },
     { id: 20, language: 'english', name: 'Dr. Mustafa Khattab, the Clear Quran', author_name: 'Dr. Mustafa Khattab' },
     { id: 85, language: 'english', name: 'Hilali & Khan', author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan' },
-    { id: 171, language: 'english', name: 'Ghali', author_name: 'Dr. Muhammad Mahmoud Ghali' },
-    { id: 84, language: 'english', name: 'Muhiuddin Khan', author_name: 'Muhiuddin Khan' },
 
     // Urdu
     { id: 81, language: 'urdu', name: 'Ahmed Ali', author_name: 'Ahmed Ali' },
