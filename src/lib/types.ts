@@ -1,8 +1,10 @@
+
 export interface Verse {
   id: number;
   arabic: string;
   english: string;
   indonesian: string;
+  verse_key?: string;
 }
 
 export interface Surah {
@@ -15,6 +17,7 @@ export interface Surah {
 export interface Reciter {
   id: string;
   name: string;
+  audio_url_path: string;
 }
 
 export interface Stat {
