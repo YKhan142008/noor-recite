@@ -57,9 +57,7 @@ export async function GET(request: Request) {
     const combinedVerses = versesData.verses.map((verse: any) => ({
       ...verse,
       arabic: verse.text_uthmani,
-      translations: {
-          [translationId]: translationsMap.get(verse.verse_key) || ''
-      },
+      translation: translationsMap.get(verse.verse_key) || ''
     }));
 
     return NextResponse.json({

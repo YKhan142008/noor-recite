@@ -8,17 +8,7 @@ type VerseTranslationProps = {
 };
 
 export function VerseTranslation({ verse, translations, selectedTranslationId }: VerseTranslationProps) {
-    let translationText: string | undefined;
-
-    // This robustly handles cases where verse.translations is an array or an object
-    if (verse.translations) {
-      if (Array.isArray(verse.translations)) {
-          const t = verse.translations.find(t => t.id.toString() === selectedTranslationId);
-          translationText = t?.text;
-      } else {
-          translationText = verse.translations[selectedTranslationId];
-      }
-    }
+    const translationText = verse.translation;
 
     const selectedTranslationMeta = translations.find(
         t => t.id.toString() === selectedTranslationId
@@ -37,5 +27,3 @@ export function VerseTranslation({ verse, translations, selectedTranslationId }:
         </div>
     );
 }
-
-    

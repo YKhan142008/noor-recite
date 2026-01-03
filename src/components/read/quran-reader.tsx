@@ -48,10 +48,15 @@ export function QuranReader() {
 
     try {
       const response = await fetch(`/api/quran?surah=${surahId}&translations=${translationId}`);
-      const data = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response from API.' }));
+        throw new Error(errorData.message || 'Failed to fetch surah content');
+      }
 
-      if (!response.ok || !data.verses) {
-        throw new Error(data.message || 'Failed to fetch surah content');
+      const data = await response.json();
+      
+      if (!data.verses) {
+        throw new Error('API did not return any verses.');
       }
       
       const surahInfo = surahs.find(s => s.id.toString() === surahId);
@@ -336,7 +341,7 @@ export function QuranReader() {
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleVerseClick(verse)}>
                           {currentVerseKey === verse.verse_key && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translations && navigator.clipboard.writeText(verse.arabic + '\n' + (verse.translations[selectedTranslationId] || ''))}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translation && navigator.clipboard.writeText(verse.arabic + '\n' + verse.translation)}>
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
