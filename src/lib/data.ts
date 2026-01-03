@@ -1,5 +1,5 @@
 
-import type { Surah, Reciter, Stat, ReadingActivity, Achievement } from './types';
+import type { Surah, Reciter, Stat, ReadingActivity, Achievement, Translation } from './types';
 
 export const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 1, name: 'الفاتحة', englishName: 'Al-Fatiha' },
@@ -126,6 +126,23 @@ export const reciters: Reciter[] = [
     { id: 'shuraym', name: 'Saud ash-Shuraym', audio_url_path: 'Shuraym/mp3' },
 ];
 
+// As per https://quran.com/resources/translations
+export const translations: Translation[] = [
+    // English
+    { id: 131, language: 'english', name: 'Saheeh International', author_name: 'Saheeh International' },
+    { id: 20, language: 'english', name: 'Uthmani', author_name: 'Dr. Mustafa Khattab, the Clear Quran' },
+    { id: 85, language: 'english', name: 'Hilali & Khan', author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan' },
+    { id: 22, language: 'english', name: 'Abdullah Yusuf Ali', author_name: 'Abdullah Yusuf Ali' },
+    { id: 171, language: 'english', name: 'Ghali', author_name: 'Dr. Muhammad Mahmoud Ghali' },
+    // Urdu
+    { id: 81, language: 'urdu', name: 'Ahmed Ali', author_name: 'Ahmed Ali' },
+    { id: 101, language: 'urdu', name: 'Jalandhry', author_name: 'Fateh Muhammad Jalandhry' },
+    { id: 102, language: 'urdu', name: 'Jawadi', author_name: 'Syed Zeeshan Haider Jawadi' },
+    { id: 158, language: 'urdu', name: 'Maududi', author_name: 'Abul A\'ala Maududi' },
+    { id: 103, language: 'urdu', name: 'Nadwi', author_name: 'Shah Abdul Qadir Dehlavi' },
+];
+
+
 export const readingStats: { [key: string]: Stat } = {
   versesRead: {
     title: 'Verses Read Today',
@@ -169,5 +186,3 @@ export const searchResults = [
   { surah: 'Al-Imran', verse: 133, text: 'And hasten to forgiveness from your Lord and a garden as wide as the heavens and earth, prepared for the righteous' },
   { surah: 'An-Nisa', verse: 29, text: 'O you who have believed, do not consume one another\'s wealth unjustly but only [in lawful] business by mutual consent. And do not kill yourselves [or one another]. Indeed, Allah is to you ever Merciful.' },
 ];
-
-    

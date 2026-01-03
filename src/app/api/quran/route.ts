@@ -16,11 +16,8 @@ async function fetchFromQuranApi(path: string) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const surahId = searchParams.get('surah');
-  // Expect a comma-separated list of translation IDs
-  const translationIdsParam = searchParams.get('translations');
-  
-  // Default to English (Saheeh International) and Indonesian if not specified
-  const translationIds = translationIdsParam ? translationIdsParam.split(',') : ['131', '33'];
+  // Expect a single translation ID
+  const translationId = searchParams.get('translations'); // Default handled client-side
 
   if (!surahId) {
     try {
@@ -34,33 +31,35 @@ export async function GET(request: Request) {
     }
   }
 
+  if (!translationId) {
+      return new NextResponse(
+        JSON.stringify({ message: 'Translation ID is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+  }
+
   try {
-    // Fetch verses and all requested translations in parallel
+    // Fetch verses and the single requested translation in parallel
     const versesPromise = fetchFromQuranApi(`quran/verses/uthmani?chapter_number=${surahId}`);
-    const translationsPromises = translationIds.map(id => 
-      fetchFromQuranApi(`quran/translations/${id}?chapter_number=${surahId}`)
-    );
+    const translationPromise = fetchFromQuranApi(`quran/translations/${translationId}?chapter_number=${surahId}`);
 
-    const [versesData, ...translationsDataArray] = await Promise.all([versesPromise, ...translationsPromises]);
+    const [versesData, translationData] = await Promise.all([versesPromise, translationPromise]);
 
-    // Combine translations into a more useful structure
-    const translationsMap = new Map<string, { [key: string]: string }>();
-    translationsDataArray.forEach((transData, index) => {
-        const transId = translationIds[index];
-        transData.translations.forEach((t: { verse_key: string; text: string }) => {
-            if (!translationsMap.has(t.verse_key)) {
-                translationsMap.set(t.verse_key, {});
-            }
-            const verseTranslations = translationsMap.get(t.verse_key)!;
-            verseTranslations[transId] = t.text.replace(/<sup[^>]*>.*?<\/sup>/g, '');
-        });
+    // Create a simple map for faster lookups
+    const translationsMap = new Map<string, string>();
+    translationData.translations.forEach((t: { verse_key: string; text: string }) => {
+        // Strip out HTML tags like sup which are common in some translations
+        translationsMap.set(t.verse_key, t.text.replace(/<sup[^>]*>.*?<\/sup>/g, ''));
     });
     
-    // Attach the mapped translations to each verse
+    // Attach the mapped translation to each verse
     const combinedVerses = versesData.verses.map((verse: any) => ({
       ...verse,
       arabic: verse.text_uthmani,
-      translations: translationsMap.get(verse.verse_key) || {},
+      // The API response for translations should have a key that is the translationId
+      translations: {
+          [translationId]: translationsMap.get(verse.verse_key) || ''
+      },
     }));
 
     return NextResponse.json({

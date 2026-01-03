@@ -16,7 +16,7 @@ export function VerseTranslation({ verse, translations, selectedTranslationId }:
     }
 
     return (
-        <div className='text-left' dir="ltr">
+        <div className='text-left pt-6 border-t border-dashed mt-6' dir="ltr">
             <p className="mt-4 text-foreground/80 leading-relaxed">{translationText}</p>
             <p className="mt-2 text-sm text-muted-foreground italic">
                 — {selectedTranslationMeta.author_name}, {selectedTranslationMeta.name}
@@ -24,5 +24,3 @@ export function VerseTranslation({ verse, translations, selectedTranslationId }:
         </div>
     );
 }
-
-    

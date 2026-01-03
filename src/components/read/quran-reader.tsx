@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { allSurahs as surahs, reciters } from '@/lib/data';
+import { allSurahs as surahs, reciters, translations } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Verse, Surah, Reciter, Translation } from '@/lib/types';
@@ -13,16 +13,14 @@ import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { VerseTranslation } from './verse-translation';
 
-const translations: Translation[] = [
-    { id: 131, language: 'english', name: 'Saheeh International', author_name: 'Saheeh International' },
-    { id: 33, language: 'indonesian', name: 'Indonesian', author_name: 'Ministry of Religious Affairs' },
-];
-
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
   const [surah, ayah] = verseKey.split(':');
   return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
 }
+
+const englishTranslations = translations.filter(t => t.language === 'english');
+const urduTranslations = translations.filter(t => t.language === 'urdu');
 
 export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
@@ -44,12 +42,12 @@ export function QuranReader() {
     setIsClient(true);
   }, []);
 
-  const fetchSurahContent = async (surahId: string) => {
+  const fetchSurahContent = async (surahId: string, translationId: string) => {
     setIsLoading(true);
     if (isPlaying) stopPlayback();
 
     try {
-      const response = await fetch(`/api/quran?surah=${surahId}&translations=${selectedTranslationId}`);
+      const response = await fetch(`/api/quran?surah=${surahId}&translations=${translationId}`);
       const data = await response.json();
 
       if (!response.ok || !data.verses) {
@@ -78,8 +76,8 @@ export function QuranReader() {
   };
 
   useEffect(() => {
-    if (selectedSurahId) {
-      fetchSurahContent(selectedSurahId);
+    if (selectedSurahId && selectedTranslationId) {
+      fetchSurahContent(selectedSurahId, selectedTranslationId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSurahId, selectedTranslationId]);
@@ -242,11 +240,18 @@ export function QuranReader() {
                     <SelectValue placeholder="Select Translation" />
                   </SelectTrigger>
                   <SelectContent>
-                      {translations.map((translation) => (
+                        <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">English</p>
+                        {englishTranslations.map((translation) => (
                           <SelectItem key={translation.id} value={translation.id.toString()}>
                             {translation.name}
                           </SelectItem>
-                      ))}
+                        ))}
+                         <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">Urdu</p>
+                        {urduTranslations.map((translation) => (
+                          <SelectItem key={translation.id} value={translation.id.toString()}>
+                            {translation.name}
+                          </SelectItem>
+                        ))}
                   </SelectContent>
                 </Select>
             </div>
@@ -273,7 +278,7 @@ export function QuranReader() {
         <div className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
           {isLoading ? (
              <div className="space-y-8">
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-8" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-12 mt-8" dir="rtl">
                 <Skeleton className="h-16 w-1/2 mx-auto" />
               </h2>
               <div className="space-y-4">
@@ -284,7 +289,7 @@ export function QuranReader() {
             </div>
           ) : selectedSurah ? (
             <>
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-8" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-12 mt-8" dir="rtl">
                 {selectedSurah.name}
               </h2>
               <div className='text-center mb-8'>
@@ -322,7 +327,7 @@ export function QuranReader() {
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleVerseClick(verse)}>
                           {currentVerseKey === verse.verse_key && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translations && navigator.clipboard.writeText(verse.arabic + '\n' + verse.translations[selectedTranslationId])}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translations && navigator.clipboard.writeText(verse.arabic + '\n' + (verse.translations[selectedTranslationId] || ''))}>
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
