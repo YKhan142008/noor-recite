@@ -50,7 +50,7 @@ export function AchievementsGrid({ achievements }: AchievementsGridProps) {
                     )}
                   </div>
                   <p className={cn(
-                      "text-xs font-medium",
+                      "text-xs font-medium leading-tight",
                       achievement.unlocked ? 'text-foreground' : 'text-muted-foreground'
                   )}>
                     {achievement.title}

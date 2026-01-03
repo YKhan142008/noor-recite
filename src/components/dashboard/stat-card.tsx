@@ -22,7 +22,7 @@ export function StatCard({ icon, title, value, change, changeType }: StatCardPro
         <p
           className={cn(
             'text-xs text-muted-foreground',
-            changeType === 'increase' ? 'text-green-500' : 'text-red-500'
+            changeType === 'increase' ? 'text-green-600' : 'text-red-600'
           )}
         >
           {change} from yesterday

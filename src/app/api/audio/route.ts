@@ -25,27 +25,24 @@ export async function GET(request: NextRequest) {
 
     if (!audioResponse.ok) {
       const errorText = await audioResponse.text();
-      console.error(`Failed to fetch audio from source: ${audioResponse.status}`, errorText);
       return new NextResponse(
-        `Failed to fetch audio. Status: ${audioResponse.status}. Body: ${errorText}`,
-        { status: audioResponse.status }
+        JSON.stringify({ message: `Failed to fetch audio from source: ${audioResponse.status}`, error: errorText }),
+        { status: audioResponse.status, headers: { 'Content-Type': 'application/json' } }
       );
     }
     
     if (!audioResponse.body) {
-        return new NextResponse(JSON.stringify({ message: 'Audio source returned no content.' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+      return new NextResponse(JSON.stringify({ message: 'Audio source returned no content.' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // Get the readable stream from the response body
     const body = audioResponse.body;
     
-    // Create new headers and forward the relevant ones from the original response
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
-    responseHeaders.set('Accept-Ranges', 'bytes');
+    responseHeaders.set('Accept-Ranges', audioResponse.headers.get('Accept-Ranges') || 'bytes');
     
     const contentLength = audioResponse.headers.get('Content-Length');
     if (contentLength) {
@@ -57,10 +54,8 @@ export async function GET(request: NextRequest) {
       responseHeaders.set('Content-Range', contentRange);
     }
 
-    // Determine the status code - 206 for partial content, 200 for full content.
     const status = audioResponse.status;
 
-    // Return a new NextResponse with the stream, status, and headers
     return new NextResponse(body, {
       status: status,
       statusText: audioResponse.statusText,

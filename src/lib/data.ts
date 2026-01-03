@@ -1,15 +1,10 @@
 
 import type { Surah, Reciter, Stat, ReadingActivity, Achievement } from './types';
 
-const bismillahVerse = {
-  id: 0, // Use 0 to indicate it's the prepended Bismillah
-  arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-  english: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
-  indonesian: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.',
-  verse_key: "1:1" // Although it's being prepended, it's originally the first verse of Al-Fatiha
-};
+// This file now only contains static data for reciters and dashboard stats.
+// The surah list is still here, but the verse content will be fetched dynamically.
 
-const allSurahs: Omit<Surah, 'verses'>[] = [
+export const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 1, name: 'الفاتحة', englishName: 'Al-Fatiha' },
   { id: 2, name: 'البقرة', englishName: 'Al-Baqarah' },
   { id: 3, name: 'آل عمران', englishName: 'Ali \'Imran' },
@@ -30,7 +25,7 @@ const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 18, name: 'الكهف', englishName: 'Al-Kahf' },
   { id: 19, name: 'مريم', englishName: 'Maryam' },
   { id: 20, name: 'طه', englishName: 'Taha' },
-  { id: 21, name: 'الأنبياء', englishName: 'Al-Anbya' },
+  { id: 21, name: 'الأنبياء', englishname: 'Al-Anbya' },
   { id: 22, name: 'الحج', englishName: 'Al-Hajj' },
   { id: 23, name: 'المؤمنون', englishName: 'Al-Mu\'minun' },
   { id: 24, name: 'النور', englishName: 'An-Nur' },
@@ -126,58 +121,8 @@ const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 114, name: 'الناس', englishName: 'An-Nas' },
 ];
 
-const versesData: Record<string, any[]> = {
-  '1': [
-    { id: 1, arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', english: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.', indonesian: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.' },
-    { id: 2, arabic: 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', english: 'All praise is for Allah, Lord of the worlds.', indonesian: 'Segala puji bagi Allah, Tuhan semesta alam.' },
-    { id: 3, arabic: 'الرَّحْمَٰنِ الرَّحِيمِ', english: 'The Entirely Merciful, the Especially Merciful,', indonesian: 'Maha Pemurah lagi Maha Penyayang.' },
-    { id: 4, arabic: 'مَالِكِ يَوْمِ الدِّينِ', english: 'Sovereign of the Day of Recompense.', indonesian: 'Yang menguasai di Hari Pembalasan.' },
-    { id: 5, arabic: 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', english: 'It is You we worship and You we ask for help.', indonesian: 'Hanya Engkaulah yang kami sembah, dan hanya kepada Engkaulah kami meminta pertolongan.' },
-    { id: 6, arabic: 'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ', english: 'Guide us to the straight path -', indonesian: 'Tunjukilah kami jalan yang lurus,' },
-    { id: 7, arabic: 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ', english: 'The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.', indonesian: '(yaitu) Jalan orang-orang yang telah Engkau beri nikmat kepada mereka; bukan (jalan) mereka yang dimurkai dan bukan (pula jalan) mereka yang sesat.' },
-  ],
-  '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8': [], '9': [], '10': [], '11': [], '12': [], '13': [], '14': [], '15': [], '16': [], '17': [], '18': [], '19': [], '20': [], '21': [], '22': [], '23': [], '24': [], '25': [], '26': [], '27': [], '28': [], '29': [], '30': [], '31': [], '32': [], '33': [], '34': [], '35': [], '36': [], '37': [], '38': [], '39': [], '40': [], '41': [], '42': [], '43': [], '44': [], '45': [], '46': [], '47': [], '48': [], '49': [], '50': [], '51': [], '52': [], '53': [], '54': [], '55': [], '56': [], '57': [], '58': [], '59': [], '60': [], '61': [], '62': [], '63': [], '64': [], '65': [], '66': [], '67': [], '68': [], '69': [], '70': [], '71': [], '72': [], '73': [], '74': [], '75': [], '76': [], '77': [], '78': [], '79': [], '80': [], '81': [], '82': [], '83': [], '84': [], '85': [], '86': [], '87': [], '88': [], '89': [], '90': [], '91': [], '92': [], '93': [], '94': [], '95': [], '96': [], '97': [], '98': [], '99': [], '100': [], '101': [], '102': [], '103': [], '104': [], '105': [], '106': [], '107': [], '108': [], '109': [], '110': [], '111': [],
-  '112': [
-      { id: 1, arabic: 'قُلْ هُوَ اللَّهُ أَحَدٌ', english: 'Say, "He is Allah, [who is] One,', indonesian: 'Katakanlah: Dialah Allah, Yang Maha Esa.' },
-      { id: 2, arabic: 'اللَّهُ الصَّمَدُ', english: 'Allah, the Eternal Refuge.', indonesian: 'Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu.' },
-      { id: 3, arabic: 'لَمْ يَلِدْ وَلَمْ يُولَدْ', english: 'He neither begets nor is born,', indonesian: 'Dia tiada beranak dan tidak pula diperanakkan,' },
-      { id: 4, arabic: 'وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ', english: 'Nor is there to Him any equivalent."', indonesian: 'dan tidak ada seorangpun yang setara dengan Dia.' },
-  ],
-  '113': [],
-  '114': [
-    { id: 1, arabic: 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', english: 'Say, "I seek refuge in the Lord of mankind,', indonesian: 'Katakanlah: "Aku berlindung kepada Tuhan (yang memelihara dan menguasai) manusia.' },
-    { id: 2, arabic: 'مَلِكِ النَّاسِ', english: 'The Sovereign of mankind,', indonesian: 'Raja manusia.' },
-    { id: 3, arabic: 'إِلَٰهِ النَّاسِ', english: 'The God of mankind,', indonesian: 'Sembahan manusia.' },
-    { id: 4, arabic: 'مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ', english: 'From the evil of the retreating whisperer -', indonesian: 'Dari kejahatan (bisikan) syaitan yang biasa bersembunyi,' },
-    { id: 5, arabic: 'الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ', english: 'Who whispers [evil] into the breasts of mankind -', indonesian: 'yang membisikkan (kejahatan) ke dalam dada manusia,' },
-    { id: 6, arabic: 'مِنَ الْجِنَّةِ وَالنَّاسِ', english: 'From among the jinn and mankind."', indonesian: 'dari (golongan) jin dan manusia.' },
-  ]
-};
-
-
-export const surahs: Surah[] = allSurahs.map(surahInfo => {
-    let verses = versesData[surahInfo.id.toString()] || [];
-    
-    // For Al-Fatiha, the Bismillah is already the first verse.
-    if (surahInfo.id === 1) {
-        return {
-            ...surahInfo,
-            verses: verses.map(v => ({...v, id: v.id}))
-        };
-    }
-    
-    // For all other surahs except At-Tawbah, prepend Bismillah.
-    if (surahInfo.id !== 9) {
-        verses = [bismillahVerse, ...verses.map(v => ({...v, id: v.id + 1}))];
-    } else {
-        verses = verses.map(v => ({...v, id: v.id}));
-    }
-
-    return {
-        ...surahInfo,
-        verses,
-    };
-});
+// Passing surahs with empty verses to QuranReader, which will fetch them dynamically.
+export const surahs: Surah[] = allSurahs.map(s => ({ ...s, verses: [] }));
 
 export const reciters: Reciter[] = [
     { id: '7', name: 'Mishary Rashid Alafasy', audio_url_path: 'Mishary_Bin_Rashid_Alafasy_128kbps' },
