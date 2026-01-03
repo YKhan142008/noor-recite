@@ -5,10 +5,12 @@ import { useState, useEffect, useRef } from 'react';
 import { allSurahs as surahs, reciters } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AudioPlayer } from './audio-player';
 import type { Verse, Surah, Reciter } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Play, Pause, Copy, Bookmark } from 'lucide-react';
+import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
@@ -147,15 +149,6 @@ export function QuranReader() {
     }
   };
   
-  const playPrevVerse = () => {
-    if (!currentVerseKey || !selectedSurah) return;
-    const currentIndex = selectedSurah.verses.findIndex(v => v.verse_key === currentVerseKey);
-    if (currentIndex > 0) {
-      const prevVerseKey = selectedSurah.verses[currentIndex - 1].verse_key;
-      playVerse(prevVerseKey);
-    }
-  };
-
   const handleVerseClick = (verse: Verse) => {
     if (currentVerseKey === verse.verse_key && isPlaying) {
       handlePlayPause(); 
@@ -168,7 +161,7 @@ export function QuranReader() {
     playNextVerse();
   };
 
-  const onAudioError = () => {
+  const onAudioError = (e: any) => {
     toast({
       variant: "destructive",
       title: "Audio Playback Error",
@@ -193,9 +186,7 @@ export function QuranReader() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
-              <div className="md:col-span-3">
-                <Skeleton className="h-[76px] w-full" />
-              </div>
+              <Skeleton className="h-10 w-full" />
             </div>
           </div>
           <div className="p-6 space-y-8">
@@ -217,7 +208,7 @@ export function QuranReader() {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
             <div>
               <label className="text-sm font-medium mb-1 block">Surah</label>
               <Select value={selectedSurahId} onValueChange={setSelectedSurahId}>
@@ -245,36 +236,48 @@ export function QuranReader() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-3">
-              <AudioPlayer 
-                isPlaying={isPlaying}
-                onPlayPause={handlePlayPause}
-                onNext={playNextVerse}
-                onPrev={playPrevVerse}
-                selectedReciterId={selectedReciter.id}
-                onReciterChange={handleReciterChange}
-              />
+             <div>
+              <label className="text-sm font-medium mb-1 block">Reciter</label>
+              <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Reciter" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reciters.map((reciter) => (
+                    <SelectItem key={reciter.id} value={reciter.id}>
+                      {reciter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
         
         <audio ref={audioRef} onEnded={onAudioEnded} onError={onAudioError} className="hidden" />
 
-        <div className="p-6 space-y-8 font-body text-lg">
+        <div className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
           {isLoading ? (
              <div className="space-y-8">
-              <Skeleton className="h-12 w-1/2 mx-auto" />
+              <Skeleton className="h-16 w-1/2 mx-auto" />
               <div className="space-y-4">
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
               </div>
             </div>
           ) : selectedSurah ? (
             <>
-              <h2 className="text-5xl font-arabic text-center font-bold text-foreground mb-4 mt-2" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-2" dir="rtl">
                 {selectedSurah.name}
               </h2>
+              <div className='text-center mb-8'>
+                <Button variant="ghost" onClick={handlePlayPause}>
+                  {isPlaying ? <Pause className='mr-2' /> : <Play className='mr-2' />}
+                  {isPlaying ? 'Pause' : 'Play Audio'}
+                </Button>
+              </div>
+
               {showBismillah && (
                 <div className="p-4 rounded-lg text-center border-b border-dashed">
                    <p className="text-3xl leading-relaxed font-arabic" dir="rtl">
@@ -285,20 +288,40 @@ export function QuranReader() {
                    </p>
                  </div>
               )}
+              <div className='space-y-10'>
               {selectedSurah.verses.map((verse: Verse) => (
                 <div 
                   key={verse.verse_key} 
                   ref={(el) => (verseRefs.current[verse.verse_key] = el)}
-                  className={`p-4 rounded-lg cursor-pointer transition-colors ${currentVerseKey === verse.verse_key ? 'bg-secondary' : 'hover:bg-muted/50'}`} 
-                  onClick={() => handleVerseClick(verse)}
+                  className={cn(
+                      'grid grid-cols-12 gap-x-4 md:gap-x-8 p-4 rounded-lg transition-colors',
+                      currentVerseKey === verse.verse_key ? 'bg-secondary' : ''
+                  )}
                 >
-                   <p className="text-3xl leading-relaxed text-right font-arabic" dir="rtl">
-                    {verse.arabic} 
-                    <span className="text-sm text-accent font-sans"> ({verse.id})</span>
-                  </p>
-                  <p className="mt-4 text-muted-foreground">{verse[translation]}</p>
+                  <div className='col-span-1 flex flex-col items-center space-y-4 text-sm text-muted-foreground'>
+                      <span>{verse.verse_key}</span>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleVerseClick(verse)}>
+                        {currentVerseKey === verse.verse_key && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigator.clipboard.writeText(verse.arabic + '\n' + verse[translation])}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Bookmark className="h-4 w-4" />
+                      </Button>
+                  </div>
+                   <div className="col-span-11 space-y-4">
+                     <p className="text-3xl lg:text-4xl leading-relaxed text-right font-arabic" dir="rtl">
+                      {verse.arabic} 
+                      <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
+                        {verse.id.toLocaleString('ar-SA')}
+                      </span>
+                    </p>
+                    <p className="mt-4 text-foreground/80 leading-relaxed">{verse[translation]}</p>
+                   </div>
                 </div>
               ))}
+              </div>
             </>
           ) : (
             <div className="text-center py-10">
@@ -310,5 +333,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
-    
