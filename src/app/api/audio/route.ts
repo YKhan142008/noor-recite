@@ -19,23 +19,26 @@ export async function GET(request: NextRequest) {
       headers['range'] = range;
     }
 
+    // Fetch the audio from the external source
     const audioResponse = await fetch(audioUrl, { headers });
 
+    // Check if the external fetch was successful
     if (!audioResponse.ok) {
       const errorText = await audioResponse.text();
+      console.error(`Failed to fetch audio from source: ${audioResponse.status}`, errorText);
       return new NextResponse(
         `Failed to fetch audio. Status: ${audioResponse.status}. Body: ${errorText}`,
         { status: audioResponse.status }
       );
     }
     
-    // Create a new Headers object to avoid modifying the original response headers
+    // Create new headers for our response, copying from the external source's response
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
     responseHeaders.set('Content-Length', audioResponse.headers.get('Content-Length') || '0');
     responseHeaders.set('Accept-Ranges', 'bytes');
 
-    // If the original server sent a partial response, mirror that header
+    // If the original server sent a partial response (206), mirror that header
     if (audioResponse.status === 206) {
         const contentRange = audioResponse.headers.get('Content-Range');
         if (contentRange) {
@@ -43,14 +46,14 @@ export async function GET(request: NextRequest) {
         }
     }
 
-    // Stream the body directly
+    // Stream the body directly from the external response to our client
     return new NextResponse(audioResponse.body, {
-      status: audioResponse.status,
+      status: audioResponse.status, // This will be 200 for full content, 206 for partial
       headers: responseHeaders,
     });
 
   } catch (error: any) {
-    console.error('Proxy Error:', error);
+    console.error('Audio Proxy Error:', error);
     return new NextResponse(JSON.stringify({ message: 'Error fetching audio file.', error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
