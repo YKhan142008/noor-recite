@@ -1,5 +1,6 @@
 
 import { NextResponse } from 'next/server';
+import { activeTranslation } from '@/lib/data';
 
 // A helper function to fetch original Quranic text (Uthmani script) from quran.com API v4
 async function fetchOriginalVerses(surahId: string) {
@@ -35,7 +36,9 @@ async function fetchTranslation(translationId: string, surahId: string) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const surahId = searchParams.get('surah');
-  const translationId = searchParams.get('translations');
+  
+  // The translationId is now fixed to the one defined in lib/data.ts
+  const translationId = activeTranslation.id;
 
   if (!surahId) {
     return new NextResponse(
@@ -45,21 +48,19 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Fetch both original verses and translations in parallel
+    // Fetch both original verses and the fixed translation in parallel
     const [versesData, translationData] = await Promise.all([
       fetchOriginalVerses(surahId),
-      translationId ? fetchTranslation(translationId, surahId) : Promise.resolve(null)
+      fetchTranslation(translationId, surahId)
     ]);
     
     // Create a map for quick lookup: verse_key -> translation_text
     const translationsMap = new Map<string, string>();
-    if (translationData) {
-        translationData.translations.forEach((t: { verse_key: string; text: string }) => {
-            // The API sometimes returns HTML entities, let's clean them up.
-            const cleanedText = t.text.replace(/<[^>]*>/g, '');
-            translationsMap.set(t.verse_key, cleanedText);
-        });
-    }
+    translationData.translations.forEach((t: { verse_key: string; text: string }) => {
+        // The API sometimes returns HTML entities, let's clean them up.
+        const cleanedText = t.text.replace(/<[^>]*>/g, '');
+        translationsMap.set(t.verse_key, cleanedText);
+    });
 
     // Combine original verses with their corresponding translations
     const combinedVerses = versesData.verses.map((verse: any) => ({

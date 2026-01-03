@@ -121,11 +121,13 @@ export const reciters: Reciter[] = [
     { id: '4', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Sudais/mp3' },
 ];
 
-export const translations: Translation[] = [
-    { id: '85', language: 'english', name: 'Hilali & Khan', author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan' },
-    { id: '131', language: 'english', name: 'Dr. Mustafa Khattab', author_name: 'Dr. Mustafa Khattab'},
-    { id: '171', language: 'urdu', name: 'Fateh Muhammad Jalandhry', author_name: 'Fateh Muhammad Jalandhry' },
-];
+// This is now the single source of truth for the available translation.
+export const activeTranslation: Translation = { 
+    id: '85', 
+    language: 'english', 
+    name: 'Hilali & Khan', 
+    author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan'
+};
 
 
 export const readingStats: { [key: string]: Stat } = {

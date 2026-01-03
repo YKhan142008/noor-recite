@@ -2,10 +2,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { allSurahs as surahs, reciters, translations } from '@/lib/data';
+import { allSurahs as surahs, reciters, activeTranslation } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Verse, Surah, Reciter, Translation } from '@/lib/types';
+import type { Verse, Surah, Reciter } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Play, Pause, Copy, Bookmark } from 'lucide-react';
@@ -19,14 +19,10 @@ function verseKeyToEveryAyahId(verseKey: string) {
   return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
 }
 
-const englishTranslations = translations.filter(t => t.language === 'english');
-const urduTranslations = translations.filter(t => t.language === 'urdu');
-
 export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('85'); // Default to Hilali & Khan
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
@@ -42,12 +38,13 @@ export function QuranReader() {
     setIsClient(true);
   }, []);
 
-  const fetchSurahContent = async (surahId: string, translationId: string) => {
+  const fetchSurahContent = async (surahId: string) => {
     setIsLoading(true);
     if (isPlaying) stopPlayback();
 
     try {
-      const response = await fetch(`/api/quran?surah=${surahId}&translations=${translationId}`);
+      // The API now automatically includes the active translation
+      const response = await fetch(`/api/quran?surah=${surahId}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response from API.' }));
         throw new Error(errorData.message || 'Failed to fetch surah content');
@@ -81,16 +78,15 @@ export function QuranReader() {
   };
 
   useEffect(() => {
-    if (selectedSurahId && selectedTranslationId) {
-      fetchSurahContent(selectedSurahId, selectedTranslationId);
+    if (selectedSurahId) {
+      fetchSurahContent(selectedSurahId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSurahId, selectedTranslationId]);
+  }, [selectedSurahId]);
 
   const stopPlayback = () => {
     if (audioRef.current) {
       audioRef.current.pause();
-      // More robust way to stop loading, prevents erroneous error events
       audioRef.current.removeAttribute('src'); 
       audioRef.current.load();
     }
@@ -107,12 +103,10 @@ export function QuranReader() {
     const audioUrl = `https://verses.quran.com/${selectedReciter.audio_url_path}/${fileId}.mp3`;
     
     if (audioRef.current) {
-        // Use the audio proxy to avoid CORS issues
         audioRef.current.src = `/api/audio?url=${encodeURIComponent(audioUrl)}`;
         audioRef.current.load();
         audioRef.current.play().catch(e => {
             console.error("Audio play failed:", e);
-            // This error is for when playback can't *start*
             if (isPlaying) {
                  toast({
                     variant: "destructive",
@@ -142,7 +136,6 @@ export function QuranReader() {
         audioRef.current?.play().catch(e => console.error("Audio resume failed:", e));
         setIsPlaying(true);
       } else if (selectedSurah?.verses.length) {
-        // Start playing from the first verse if nothing is playing
         const firstVerseKey = selectedSurah.verses[0]?.verse_key;
         if (firstVerseKey) playVerse(firstVerseKey);
       }
@@ -159,14 +152,13 @@ export function QuranReader() {
       const nextVerseKey = selectedSurah.verses[currentIndex + 1].verse_key;
       playVerse(nextVerseKey);
     } else {
-      // Reached the end of the surah
       stopPlayback();
     }
   };
   
   const handleVerseClick = (verse: Verse) => {
     if (currentVerseKey === verse.verse_key && isPlaying) {
-      handlePlayPause(); // This will pause it
+      handlePlayPause();
     } else {
       playVerse(verse.verse_key);
     }
@@ -180,7 +172,6 @@ export function QuranReader() {
     const audio = audioRef.current;
     if (!audio) return;
     
-    // Ignore errors caused by stopping/clearing the source intentionally
     const error = audio.error;
     if (!audio.currentSrc || (error && error.code === MediaError.MEDIA_ERR_ABORTED)) {
         return;
@@ -202,17 +193,12 @@ export function QuranReader() {
     }
   };
 
-  const getSelectedTranslationMeta = () => {
-    return translations.find(t => t.id === selectedTranslationId);
-  }
-
   if (!isClient) {
     return (
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           <div className="bg-muted/50 p-4 border-b">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Skeleton className="h-10 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
@@ -236,7 +222,7 @@ export function QuranReader() {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             <div>
               <label className="text-sm font-medium mb-1 block">Surah</label>
               <Select value={selectedSurahId} onValueChange={setSelectedSurahId}>
@@ -251,28 +237,6 @@ export function QuranReader() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-                <label className="text-sm font-medium mb-1 block">Translation</label>
-                <Select value={selectedTranslationId} onValueChange={setSelectedTranslationId}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Translation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                        <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">English</p>
-                        {englishTranslations.map((translation) => (
-                          <SelectItem key={translation.id} value={translation.id}>
-                            {translation.name}
-                          </SelectItem>
-                        ))}
-                         <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">Urdu</p>
-                        {urduTranslations.map((translation) => (
-                          <SelectItem key={translation.id} value={translation.id}>
-                            {translation.name}
-                          </SelectItem>
-                        ))}
-                  </SelectContent>
-                </Select>
             </div>
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
@@ -323,11 +287,9 @@ export function QuranReader() {
                    <p className="text-3xl leading-relaxed font-arabic" dir="rtl">
                      بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                    </p>
-                    {selectedTranslationId && (
-                       <p className="mt-4 text-muted-foreground text-base">
-                        In the name of Allah, the Entirely Merciful, the Especially Merciful.
-                       </p>
-                    )}
+                    <p className="mt-4 text-muted-foreground text-base">
+                      In the name of Allah, the Entirely Merciful, the Especially Merciful.
+                    </p>
                  </div>
               )}
               <div className='space-y-10'>
@@ -364,8 +326,8 @@ export function QuranReader() {
                       </p>
                       <VerseTranslation 
                         translation={verse.translation}
-                        author={getSelectedTranslationMeta()?.author_name}
-                        source={getSelectedTranslationMeta()?.name}
+                        author={activeTranslation.author_name}
+                        source={activeTranslation.name}
                       />
                      </div>
                   </div>
