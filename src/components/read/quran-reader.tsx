@@ -259,7 +259,7 @@ export function QuranReader() {
         <div className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
           {isLoading ? (
              <div className="space-y-8">
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-2" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-8" dir="rtl">
                 <Skeleton className="h-16 w-1/2 mx-auto" />
               </h2>
               <div className="space-y-4">
@@ -270,7 +270,7 @@ export function QuranReader() {
             </div>
           ) : selectedSurah ? (
             <>
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-2" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-8 mt-8" dir="rtl">
                 {selectedSurah.name}
               </h2>
               <div className='text-center mb-8'>
