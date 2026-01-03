@@ -52,26 +52,21 @@ export function QuranReader() {
       if (!surahInfo) throw new Error('Surah not found in metadata');
 
       let fetchedVerses: Verse[] = data.verses.map((v: any, index: number) => ({
-        id: index + 1, // Ensure verse IDs are sequential starting from 1
+        id: index + 1,
         arabic: v.text_uthmani,
-        english: data.translations[index]?.text || '',
-        indonesian: data.indonesianTranslations[index]?.text || '',
-        verse_key: v.verse_key
+        english: data.translations.find((t: any) => t.verse_key === v.verse_key)?.text || '',
+        indonesian: data.indonesianTranslations.find((t: any) => t.verse_key === v.verse_key)?.text || '',
+        verse_key: v.verse_key,
       }));
       
-      // The API already includes bismillah for surahs that have it, so no need to prepend manually
-      // except for cases where it might be missing.
-      // A safer approach is to rely on the API data as the source of truth.
-      // However, if we must prepend:
       if (surahInfo.id !== 1 && surahInfo.id !== 9) {
-         // Check if bismillah is already present
-         if (!fetchedVerses[0]?.arabic.includes('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ')) {
+         if (!fetchedVerses[0]?.arabic.startsWith('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ')) {
             fetchedVerses.unshift({
               id: 0,
               arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
               english: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
               indonesian: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.',
-              verse_key: '1:1' // Use Al-Fatiha's bismillah audio
+              verse_key: '1:1'
             });
          }
       }
@@ -103,10 +98,6 @@ export function QuranReader() {
 
   const getVerseKeyForAudio = (verse: Verse) => {
     if (!verse.verse_key) return null;
-    if (verse.id === 0) {
-      // The Bismillah verse for all surahs (except 1 and 9) should use the audio for 1:1
-      return '001001';
-    }
     const [surah, ayah] = verse.verse_key.split(':');
     return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
   }
@@ -136,15 +127,10 @@ export function QuranReader() {
   useEffect(() => {
     if (audioUrl && audioRef.current) {
       audioRef.current.src = audioUrl;
-      audioRef.current.load(); // Load the new source
+      audioRef.current.load();
       audioRef.current.play().catch(e => {
         console.error("Audio play failed on source change:", e);
-        stopPlayback();
-        toast({
-          variant: "destructive",
-          title: "Audio Playback Error",
-          description: "There was an issue starting audio playback.",
-        });
+        // Don't stop playback here, let the onError handler do it.
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,7 +145,6 @@ export function QuranReader() {
         setIsPlaying(true);
         audioRef.current.play().catch(e => console.error("Audio play failed on resume:", e));
       } else if (selectedSurahContent?.verses.length) {
-        // If nothing is playing, play the first verse
         playVerse(selectedSurahContent.verses[0]);
       }
     }
@@ -319,3 +304,5 @@ export function QuranReader() {
     </Card>
   );
 }
+
+    

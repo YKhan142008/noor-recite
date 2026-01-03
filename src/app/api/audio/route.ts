@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     const audioResponse = await fetch(audioUrl, { headers: fetchHeaders });
 
-    if (!audioResponse.ok && audioResponse.status !== 206) {
+    if (!audioResponse.ok) {
       const errorText = await audioResponse.text();
       console.error(`Failed to fetch audio from source: ${audioResponse.status}`, errorText);
       return new NextResponse(
@@ -33,7 +33,11 @@ export async function GET(request: NextRequest) {
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
     responseHeaders.set('Accept-Ranges', audioResponse.headers.get('Accept-Ranges') || 'bytes');
-    responseHeaders.set('Content-Length', audioResponse.headers.get('Content-Length') || '0');
+    
+    const contentLength = audioResponse.headers.get('Content-Length');
+    if (contentLength) {
+      responseHeaders.set('Content-Length', contentLength);
+    }
     
     const contentRange = audioResponse.headers.get('Content-Range');
     if (contentRange) {
@@ -53,3 +57,5 @@ export async function GET(request: NextRequest) {
     });
   }
 }
+
+    
