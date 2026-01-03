@@ -29,15 +29,21 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Create a new Headers object to avoid modifying the original response headers
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
     responseHeaders.set('Content-Length', audioResponse.headers.get('Content-Length') || '0');
     responseHeaders.set('Accept-Ranges', 'bytes');
 
+    // If the original server sent a partial response, mirror that header
     if (audioResponse.status === 206) {
-        responseHeaders.set('Content-Range', audioResponse.headers.get('Content-Range') || '');
+        const contentRange = audioResponse.headers.get('Content-Range');
+        if (contentRange) {
+          responseHeaders.set('Content-Range', contentRange);
+        }
     }
 
+    // Stream the body directly
     return new NextResponse(audioResponse.body, {
       status: audioResponse.status,
       headers: responseHeaders,

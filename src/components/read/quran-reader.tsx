@@ -14,11 +14,11 @@ export function QuranReader() {
   const [allSurahs, setAllSurahs] = useState<Surah[]>(surahs);
   const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
-  const [selectedSurahContent, setSelectedSurahContent] = useState<Surah | null>(allSurahs.find(s => s.id.toString() === selectedSurahId) || null);
+  const [selectedSurahContent, setSelectedSurahContent] = useState<Surah | null>(null);
   const [translation, setTranslation] = useState<'english' | 'indonesian'>('english');
   const [selectedReciterId, setSelectedReciterId] = useState<string>(reciters[0].id);
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentVerseId, setCurrentVerseId] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -35,6 +35,8 @@ export function QuranReader() {
     setCurrentVerseId(null);
     if (audioRef.current) {
       audioRef.current.pause();
+      // Setting src to '' can cause an error event, so we avoid it.
+      // We'll just set a new src when play is clicked again.
     }
   };
 
@@ -59,14 +61,13 @@ export function QuranReader() {
         verse_key: v.verse_key
       }));
       
-      // Prepend Bismillah for all surahs except Al-Fatiha (1) and At-Tawbah (9)
       if (surahInfo.id !== 1 && surahInfo.id !== 9) {
         fetchedVerses.unshift({
           id: 0,
           arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
           english: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
           indonesian: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.',
-          verse_key: `${surahInfo.id}:0`
+          verse_key: '1:1'
         });
       }
 
@@ -95,13 +96,13 @@ export function QuranReader() {
 
 
   const getVerseKeyForAudio = (verse: Verse) => {
-    // The Bismillah verse for all surahs (except 1 and 9) should use the audio for 1:1
+    if (!verse.verse_key) return null;
     if (verse.id === 0) {
+      // The Bismillah verse for all surahs (except 1 and 9) should use the audio for 1:1
       return '001001';
     }
-    const surahId = selectedSurahContent?.id.toString().padStart(3, '0');
-    const verseId = verse.id.toString().padStart(3, '0');
-    return `${surahId}${verseId}`;
+    const [surah, ayah] = verse.verse_key.split(':');
+    return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
   }
 
   const playVerse = async (verse: Verse) => {
@@ -109,6 +110,16 @@ export function QuranReader() {
     if (!selectedReciter || !selectedSurahContent) return;
 
     const verseKey = getVerseKeyForAudio(verse);
+    if (!verseKey) {
+      console.error("Could not determine verse key for audio.", verse);
+      toast({
+          variant: "destructive",
+          title: "Audio Playback Error",
+          description: "Could not determine the correct audio file for this verse.",
+      });
+      return;
+    }
+
     const newAudioUrl = `https://everyayah.com/data/${selectedReciter.audio_url_path}/${verseKey}.mp3`;
     
     setAudioUrl(`/api/audio?url=${encodeURIComponent(newAudioUrl)}`);
@@ -119,7 +130,16 @@ export function QuranReader() {
   useEffect(() => {
     if (audioUrl && audioRef.current) {
       audioRef.current.src = audioUrl;
-      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+      audioRef.current.load(); // Load the new source
+      audioRef.current.play().catch(e => {
+        console.error("Audio play failed on source change:", e);
+        stopPlayback();
+        toast({
+          variant: "destructive",
+          title: "Audio Playback Error",
+          description: "There was an issue starting audio playback.",
+        });
+      });
     }
   }, [audioUrl]);
 
@@ -128,10 +148,11 @@ export function QuranReader() {
       setIsPlaying(false);
       audioRef.current?.pause();
     } else {
-      if (currentVerseId !== null && audioRef.current) {
+      if (currentVerseId !== null && audioRef.current && audioRef.current.src) {
         setIsPlaying(true);
-        audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+        audioRef.current.play().catch(e => console.error("Audio play failed on resume:", e));
       } else if (selectedSurahContent?.verses.length) {
+        // If nothing is playing, play the first verse
         playVerse(selectedSurahContent.verses[0]);
       }
     }
@@ -291,4 +312,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
