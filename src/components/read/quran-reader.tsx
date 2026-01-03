@@ -5,13 +5,15 @@ import { useState, useEffect, useRef } from 'react';
 import { allSurahs as surahs, reciters, activeTranslation } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Verse, Surah, Reciter } from '@/lib/types';
+import type { Verse, Surah, Reciter, Bookmark as BookmarkType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { VerseTranslation } from './verse-translation';
+import { useBookmarks } from '@/context/BookmarkContext';
+import Link from 'next/link';
 
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
@@ -34,8 +36,21 @@ export function QuranReader() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const verseRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
 
+  const { bookmarks, addBookmark, removeBookmark } = useBookmarks();
+
   useEffect(() => {
     setIsClient(true);
+    const params = new URLSearchParams(window.location.search);
+    const surah = params.get('surah');
+    const verse = params.get('verse');
+    if (surah) {
+      setSelectedSurahId(surah);
+    }
+    if (surah && verse) {
+      setTimeout(() => {
+        handleAyahJump(`${surah}:${verse}`);
+      }, 1000); // Delay to allow verses to render
+    }
   }, []);
 
   const fetchSurahContent = async (surahId: string) => {
@@ -66,7 +81,16 @@ export function QuranReader() {
       });
 
       setCurrentVerseKey(null);
-      window.scrollTo(0, 0);
+      
+      const params = new URLSearchParams(window.location.search);
+      const verse = params.get('verse');
+      if(params.get('surah') === surahId && verse) {
+        // verses are now loaded, we can scroll
+        handleAyahJump(`${surahId}:${verse}`);
+      } else {
+        window.scrollTo(0, 0);
+      }
+
 
     } catch (error) {
       toast({
@@ -214,6 +238,27 @@ export function QuranReader() {
     }
   };
 
+  const isBookmarked = (verseKey: string) => {
+    return bookmarks.some(b => b.verse_key === verseKey);
+  }
+
+  const handleBookmarkToggle = (verse: Verse) => {
+    if (!selectedSurah) return;
+    if (isBookmarked(verse.verse_key)) {
+      removeBookmark(verse.verse_key);
+      toast({ title: 'Bookmark removed' });
+    } else {
+      const bookmark: BookmarkType = {
+        surahId: selectedSurah.id,
+        surahName: selectedSurah.name,
+        verse_key: verse.verse_key,
+        text: verse.arabic,
+      };
+      addBookmark(bookmark);
+      toast({ title: 'Bookmark added' });
+    }
+  }
+
 
   if (!isClient) {
     return (
@@ -245,7 +290,7 @@ export function QuranReader() {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
             <div>
               <label className="text-sm font-medium mb-1 block">Surah</label>
               <Select value={selectedSurahId} onValueChange={setSelectedSurahId}>
@@ -290,6 +335,15 @@ export function QuranReader() {
                     ))}
                   </SelectContent>
               </Select>
+            </div>
+            <div>
+                <label className="text-sm font-medium mb-1 block opacity-0">Bookmarks</label>
+                <Button asChild variant="outline" className="w-full">
+                    <Link href="/bookmarks">
+                        <Bookmark className="mr-2"/>
+                        My Bookmarks
+                    </Link>
+                </Button>
             </div>
           </div>
         </div>
@@ -349,8 +403,8 @@ export function QuranReader() {
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translation && navigator.clipboard.writeText(verse.arabic + '\n' + verse.translation)}>
                           <Copy className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Bookmark className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleBookmarkToggle(verse)}>
+                          <Bookmark className={cn("h-4 w-4", isBookmarked(verse.verse_key) ? 'fill-accent text-accent' : '')} />
                         </Button>
                     </div>
                      <div className="space-y-4">

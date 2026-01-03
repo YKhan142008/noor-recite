@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AppHeader } from '@/components/layout/app-header';
 import { Toaster } from '@/components/ui/toaster';
+import { BookmarkProvider } from '@/context/BookmarkContext';
 
 export const metadata: Metadata = {
   title: 'NoorRecite',
@@ -24,11 +25,13 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400..900;1,400..900&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
-        <div className="relative flex min-h-screen flex-col">
-          <AppHeader />
-          <main className="flex-1">{children}</main>
-        </div>
-        <Toaster />
+        <BookmarkProvider>
+          <div className="relative flex min-h-screen flex-col">
+            <AppHeader />
+            <main className="flex-1">{children}</main>
+          </div>
+          <Toaster />
+        </BookmarkProvider>
       </body>
     </html>
   );

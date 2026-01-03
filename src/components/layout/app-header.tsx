@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Home, Search } from 'lucide-react';
+import { BookOpen, Home, Search, Bookmark } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import { MosaicPattern } from '@/components/icons/mosaic-pattern';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/read', label: 'Read Quran', icon: BookOpen },
   { href: '/search', label: 'Search', icon: Search },
+  { href: '/bookmarks', label: 'Bookmarks', icon: Bookmark },
 ];
 
 export function AppHeader() {

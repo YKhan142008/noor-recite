@@ -45,3 +45,10 @@ export interface Translation {
     name: string;
     author_name: string;
 }
+
+export interface Bookmark {
+  surahId: number;
+  surahName: string;
+  verse_key: string;
+  text: string;
+}
