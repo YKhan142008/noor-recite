@@ -26,7 +26,7 @@ export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('85'); // Default to Hilali & Khan
+  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('en-hilalikhan'); // Default to Hilali & Khan
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
@@ -203,7 +203,7 @@ export function QuranReader() {
   };
 
   const getSelectedTranslationMeta = () => {
-    return translations.find(t => t.id.toString() === selectedTranslationId);
+    return translations.find(t => t.id === selectedTranslationId);
   }
 
   if (!isClient) {
@@ -261,13 +261,13 @@ export function QuranReader() {
                   <SelectContent>
                         <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">English</p>
                         {englishTranslations.map((translation) => (
-                          <SelectItem key={translation.id} value={translation.id.toString()}>
+                          <SelectItem key={translation.id} value={translation.id}>
                             {translation.name}
                           </SelectItem>
                         ))}
                          <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">Urdu</p>
                         {urduTranslations.map((translation) => (
-                          <SelectItem key={translation.id} value={translation.id.toString()}>
+                          <SelectItem key={translation.id} value={translation.id}>
                             {translation.name}
                           </SelectItem>
                         ))}
@@ -383,5 +383,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
-    
