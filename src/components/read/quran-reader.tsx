@@ -364,5 +364,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
-    

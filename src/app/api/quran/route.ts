@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const surahId = searchParams.get('surah');
   // Expect a single translation ID
-  const translationId = searchParams.get('translations'); // Default handled client-side
+  const translationId = searchParams.get('translations'); 
 
   if (!surahId) {
     try {
