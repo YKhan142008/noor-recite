@@ -30,11 +30,11 @@ export function QuranReader() {
   }, []);
 
   const stopPlayback = () => {
-    setIsPlaying(false);
-    setCurrentVerseId(null);
     if (audioRef.current) {
       audioRef.current.pause();
     }
+    setIsPlaying(false);
+    setCurrentVerseId(null);
   };
 
   const fetchSurahContent = async (surahId: string) => {
@@ -106,11 +106,10 @@ export function QuranReader() {
     return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
   }
 
-  const playVerse = async (verse: Verse) => {
+  const playVerse = (verse: Verse) => {
     const selectedReciter = reciters.find(r => r.id === selectedReciterId);
     if (!selectedReciter || !selectedSurahContent) return;
 
-    // Don't play the Bismillah of At-Tawbah if it exists (it shouldn't, but as a safeguard)
     if (selectedSurahContent.id === 9 && verse.id === 0) {
         playNextVerse();
         return;
@@ -126,30 +125,28 @@ export function QuranReader() {
       });
       return;
     }
-
-    const newAudioUrl = `https://everyayah.com/data/${selectedReciter.audio_url_path}/${verseKey}.mp3`;
     
+    const newAudioUrl = `https://everyayah.com/data/${selectedReciter.audio_url_path}/${verseKey}.mp3`;
     setAudioUrl(`/api/audio?url=${encodeURIComponent(newAudioUrl)}`);
     setCurrentVerseId(verse.id);
     setIsPlaying(true);
   };
   
   useEffect(() => {
-    if (audioUrl && audioRef.current) {
+    if (audioUrl && audioRef.current && isPlaying) {
       audioRef.current.src = audioUrl;
       audioRef.current.load();
       audioRef.current.play().catch(e => {
         console.error("Audio play failed on source change:", e);
-        // The onAudioError handler will show a toast to the user
       });
+    } else if (!isPlaying && audioRef.current) {
+        audioRef.current.pause();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioUrl]);
+  }, [audioUrl, isPlaying]);
 
   const handlePlayPause = () => {
     if (isPlaying) {
       setIsPlaying(false);
-      audioRef.current?.pause();
     } else {
       if (currentVerseId !== null && audioRef.current?.src) {
         setIsPlaying(true);
@@ -172,7 +169,7 @@ export function QuranReader() {
     }
   };
   
-  const playPrevVerse = ().  => {
+  const playPrevVerse = () => {
     if (currentVerseId === null || !selectedSurahContent) return;
     const currentVerseIndex = selectedSurahContent.verses.findIndex(v => v.id === currentVerseId);
     if (currentVerseIndex > 0) {
@@ -184,7 +181,6 @@ export function QuranReader() {
   const handleVerseClick = (verse: Verse) => {
     if (currentVerseId === verse.id && isPlaying) {
       setIsPlaying(false);
-       if (audioRef.current) audioRef.current.pause();
     } else {
       playVerse(verse);
     }
@@ -201,7 +197,8 @@ export function QuranReader() {
       title: "Audio Playback Error",
       description: "Could not play the requested audio file. The reciter may not have a recording for this verse.",
     })
-    stopPlayback();
+    setIsPlaying(false);
+    setCurrentVerseId(null);
   };
 
   if (!isClient) {
