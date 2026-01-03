@@ -272,7 +272,7 @@ export function QuranReader() {
             </div>
           ) : selectedSurah ? (
             <>
-              <h2 className="text-4xl font-arabic text-center font-bold text-primary" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-foreground mb-4 mt-2" dir="rtl">
                 {selectedSurah.name}
               </h2>
               {showBismillah && (
