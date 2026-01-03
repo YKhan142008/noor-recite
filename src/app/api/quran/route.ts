@@ -45,18 +45,18 @@ export async function GET(request: Request) {
 
     const [versesData, translationData] = await Promise.all([versesPromise, translationPromise]);
 
-    // Create a simple map for faster lookups
+    // Create a simple map for faster lookups: verse_key -> translation_text
     const translationsMap = new Map<string, string>();
     translationData.translations.forEach((t: { verse_key: string; text: string }) => {
-        // Strip out HTML tags like sup which are common in some translations
-        translationsMap.set(t.verse_key, t.text.replace(/<sup[^>]*>.*?<\/sup>/g, ''));
+        // Strip out HTML tags like <sup> which are common in some translations
+        const cleanedText = t.text.replace(/<sup[^>]*>.*?<\/sup>/g, '');
+        translationsMap.set(t.verse_key, cleanedText);
     });
     
     // Attach the mapped translation to each verse
     const combinedVerses = versesData.verses.map((verse: any) => ({
       ...verse,
       arabic: verse.text_uthmani,
-      // The API response for translations should have a key that is the translationId
       translations: {
           [translationId]: translationsMap.get(verse.verse_key) || ''
       },
