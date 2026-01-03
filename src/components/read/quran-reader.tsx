@@ -57,33 +57,9 @@ export function QuranReader() {
       const surahInfo = surahs.find(s => s.id.toString() === surahId);
       if (!surahInfo) throw new Error('Surah not found in metadata');
       
-      const normalizedVerses = data.verses.map((v: any) => {
-        let map: Record<string, string> = {};
-
-        if (Array.isArray(v.translations)) {
-            for (const t of v.translations) {
-            map[t.id.toString()] = t.text;
-            }
-        } else {
-            // This handles the case where the API returns an object directly
-            map = v.translations || {};
-        }
-
-        // The API I fixed in the last step already returns a keyed object.
-        // This logic handles both cases to be safe.
-        const finalTranslations = v.translations && v.translations[translationId] 
-            ? { [translationId]: v.translations[translationId] }
-            : map;
-
-        return {
-            ...v,
-            translations: finalTranslations,
-        };
-      });
-
       setSelectedSurah({
         ...surahInfo,
-        verses: normalizedVerses,
+        verses: data.verses,
       });
       setCurrentVerseKey(null);
 
@@ -397,5 +373,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
-    
