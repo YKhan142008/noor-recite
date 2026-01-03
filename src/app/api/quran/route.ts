@@ -55,7 +55,8 @@ export async function GET(request: Request) {
     
     // Attach the mapped translation to each verse
     const combinedVerses = versesData.verses.map((verse: any) => ({
-      ...verse,
+      id: verse.id,
+      verse_key: verse.verse_key,
       arabic: verse.text_uthmani,
       translation: translationsMap.get(verse.verse_key) || ''
     }));
