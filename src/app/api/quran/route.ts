@@ -4,8 +4,8 @@ import { activeTranslation } from '@/lib/data';
 
 async function fetchSurahData(surahId: string, translationId: string) {
   // This endpoint can fetch the verse and its translation in a single call.
-  // We specify which translation we want.
-  const url = `https://api.quran.com/api/v4/verses/by_chapter/${surahId}?language=en&words=false&translations=${translationId}&fields=text_uthmani`;
+  // We specify which translation we want and set a high per_page limit.
+  const url = `https://api.quran.com/api/v4/verses/by_chapter/${surahId}?language=en&words=false&translations=${translationId}&fields=text_uthmani&per_page=300`;
 
   try {
     const res = await fetch(url);
