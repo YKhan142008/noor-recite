@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -195,6 +196,15 @@ export function QuranReader() {
     }
   };
 
+  const handleAyahJump = (verseKey: string) => {
+    if (verseRefs.current[verseKey]) {
+      verseRefs.current[verseKey]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
+
   if (!isClient) {
     return (
       <Card className="overflow-hidden">
@@ -224,7 +234,7 @@ export function QuranReader() {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
             <div>
               <label className="text-sm font-medium mb-1 block">Surah</label>
               <Select value={selectedSurahId} onValueChange={setSelectedSurahId}>
@@ -253,6 +263,21 @@ export function QuranReader() {
                     </SelectItem>
                   ))}
                 </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Go to Ayah</label>
+              <Select onValueChange={handleAyahJump} disabled={!selectedSurah || selectedSurah.verses.length === 0}>
+                  <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Ayah" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedSurah?.verses.map((verse) => (
+                      <SelectItem key={verse.verse_key} value={verse.verse_key}>
+                          Ayah {verse.verse_key.split(':')[1]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
               </Select>
             </div>
           </div>
