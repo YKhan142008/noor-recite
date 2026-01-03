@@ -252,7 +252,7 @@ export function QuranReader() {
                 <Select value={selectedTranslationId} onValueChange={setSelectedTranslationId}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Translation" />
-                  </Trigger>
+                  </SelectTrigger>
                   <SelectContent>
                         <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">English</p>
                         {englishTranslations.map((translation) => (
@@ -274,7 +274,7 @@ export function QuranReader() {
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Reciter" />
-                </Trigger>
+                </SelectTrigger>
                 <SelectContent>
                   {reciters.map((reciter) => (
                     <SelectItem key={reciter.id} value={reciter.id}>

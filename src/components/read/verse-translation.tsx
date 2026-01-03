@@ -1,6 +1,5 @@
 
 import { translations } from '@/lib/data';
-import type { Translation } from '@/lib/types';
 
 type VerseTranslationProps = {
     translation: string;
