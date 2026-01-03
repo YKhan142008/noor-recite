@@ -33,10 +33,8 @@ export function QuranReader() {
   const stopPlayback = () => {
     setIsPlaying(false);
     setCurrentVerseId(null);
-    setAudioUrl(null);
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.src = '';
     }
   };
 
@@ -130,9 +128,9 @@ export function QuranReader() {
       setIsPlaying(false);
       audioRef.current?.pause();
     } else {
-      if (currentVerseId !== null) {
+      if (currentVerseId !== null && audioRef.current) {
         setIsPlaying(true);
-        audioRef.current?.play().catch(e => console.error("Audio play failed:", e));
+        audioRef.current.play().catch(e => console.error("Audio play failed:", e));
       } else if (selectedSurahContent?.verses.length) {
         playVerse(selectedSurahContent.verses[0]);
       }
