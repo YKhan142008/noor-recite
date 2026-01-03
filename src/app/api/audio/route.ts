@@ -14,16 +14,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const range = request.headers.get('range');
-    const headers: HeadersInit = {};
+    const fetchHeaders: HeadersInit = {};
     if (range) {
-      headers['Range'] = range;
+      fetchHeaders['Range'] = range;
     }
 
-    // Fetch the audio from the external source
-    const audioResponse = await fetch(audioUrl, { headers });
+    const audioResponse = await fetch(audioUrl, { headers: fetchHeaders });
 
-    // Check if the external fetch was successful
-    if (!audioResponse.ok) {
+    if (!audioResponse.ok && audioResponse.status !== 206) {
       const errorText = await audioResponse.text();
       console.error(`Failed to fetch audio from source: ${audioResponse.status}`, errorText);
       return new NextResponse(
@@ -32,23 +30,18 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Create new headers for our response, copying from the external source's response
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
+    responseHeaders.set('Accept-Ranges', audioResponse.headers.get('Accept-Ranges') || 'bytes');
     responseHeaders.set('Content-Length', audioResponse.headers.get('Content-Length') || '0');
-    responseHeaders.set('Accept-Ranges', 'bytes');
-
-    // If the original server sent a partial response (206), mirror that header
-    if (audioResponse.status === 206) {
-        const contentRange = audioResponse.headers.get('Content-Range');
-        if (contentRange) {
-          responseHeaders.set('Content-Range', contentRange);
-        }
+    
+    const contentRange = audioResponse.headers.get('Content-Range');
+    if (contentRange) {
+      responseHeaders.set('Content-Range', contentRange);
     }
 
-    // Stream the body directly from the external response to our client
     return new NextResponse(audioResponse.body, {
-      status: audioResponse.status, // This will be 200 for full content, 206 for partial
+      status: audioResponse.status,
       headers: responseHeaders,
     });
 
