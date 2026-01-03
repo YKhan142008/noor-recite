@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Determine the status code - 206 for partial content, 200 for full content.
-    const status = range ? 206 : 200;
+    const status = audioResponse.status;
 
     // Return a new NextResponse with the stream, status, and headers
     return new NextResponse(body, {
