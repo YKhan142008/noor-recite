@@ -49,44 +49,19 @@ export function QuranReader() {
     if (isPlaying) stopPlayback();
 
     try {
-      const response = await fetch(`/api/quran?surah=${surahId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch surah content');
-      }
+      const response = await fetch(`/api/quran?surah=${surahId}&translations=${selectedTranslationId}`);
       const data = await response.json();
+
+      if (!response.ok || !data.verses) {
+        throw new Error(data.message || 'Failed to fetch surah content');
+      }
       
       const surahInfo = surahs.find(s => s.id.toString() === surahId);
       if (!surahInfo) throw new Error('Surah not found in metadata');
-
-      const fetchedVerses: Verse[] = data.verses.map((v: any) => ({
-        id: v.id,
-        arabic: v.text_uthmani,
-        verse_key: v.verse_key,
-        translations: data.translations.reduce((acc: any, trans: any) => {
-            const verseTranslation = trans.translations.find((t: any) => t.verse_key === v.verse_key);
-            if (verseTranslation) {
-                acc[trans.id] = verseTranslation.text;
-            }
-            return acc;
-        }, {})
-      }));
-
-      // A quick fix to combine translations into verses
-      const apiTranslationsResponse = await fetch(`${QURAN_API_URL}/quran/translations/${selectedTranslationId}?chapter_number=${surahId}`);
-      if(apiTranslationsResponse.ok) {
-        const transData = await apiTranslationsResponse.json();
-        const translationsMap = new Map(transData.translations.map((t: any) => [t.verse_key, t.text]));
-        fetchedVerses.forEach(v => {
-            if(translationsMap.has(v.verse_key)) {
-                v.translations[selectedTranslationId] = translationsMap.get(v.verse_key)!;
-            }
-        });
-      }
-
-
+      
       setSelectedSurah({
         ...surahInfo,
-        verses: fetchedVerses,
+        verses: data.verses,
       });
       setCurrentVerseKey(null);
 
@@ -112,6 +87,7 @@ export function QuranReader() {
   const stopPlayback = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      // Setting src to empty string is a common way to stop buffering and abort requests
       audioRef.current.src = '';
     }
     setIsPlaying(false);
@@ -126,6 +102,7 @@ export function QuranReader() {
     const audioUrl = `https://verses.quran.com/${selectedReciter.audio_url_path}/${fileId}.mp3`;
     
     if (audioRef.current) {
+        // Use the audio proxy to avoid CORS issues
         audioRef.current.src = `/api/audio?url=${encodeURIComponent(audioUrl)}`;
         audioRef.current.load();
         audioRef.current.play().catch(e => {
@@ -157,6 +134,7 @@ export function QuranReader() {
         audioRef.current?.play().catch(e => console.error("Audio resume failed:", e));
         setIsPlaying(true);
       } else if (selectedSurah?.verses.length) {
+        // Start playing from the first verse if nothing is playing
         const firstVerseKey = selectedSurah.verses[0]?.verse_key;
         if (firstVerseKey) playVerse(firstVerseKey);
       }
@@ -173,13 +151,14 @@ export function QuranReader() {
       const nextVerseKey = selectedSurah.verses[currentIndex + 1].verse_key;
       playVerse(nextVerseKey);
     } else {
+      // Reached the end of the surah
       stopPlayback();
     }
   };
   
   const handleVerseClick = (verse: Verse) => {
     if (currentVerseKey === verse.verse_key && isPlaying) {
-      handlePlayPause(); 
+      handlePlayPause(); // This will pause it
     } else {
       playVerse(verse.verse_key);
     }
@@ -190,7 +169,7 @@ export function QuranReader() {
   };
 
   const onAudioError = (e: any) => {
-    // This prevents the error toast from showing up when we intentionally stop playback.
+    // This prevents the error toast from showing up when we intentionally stop playback by changing src
     if (audioRef.current && !audioRef.current.src.includes('http')) {
         return;
     }
@@ -294,7 +273,7 @@ export function QuranReader() {
         <div className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
           {isLoading ? (
              <div className="space-y-8">
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-8 mt-8" dir="rtl">
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-8" dir="rtl">
                 <Skeleton className="h-16 w-1/2 mx-auto" />
               </h2>
               <div className="space-y-4">
