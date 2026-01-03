@@ -49,7 +49,7 @@ export function QuranReader() {
       const surahInfo = allSurahs.find(s => s.id.toString() === surahId);
       if (!surahInfo) throw new Error('Surah not found in metadata');
 
-      let fetchedVerses: Verse[] = data.verses.map((v: any, index: number) => ({
+      let fetchedVerses: Verse[] = data.verses.map((v: any) => ({
         id: v.verse_number,
         arabic: v.text_uthmani,
         english: data.translations.find((t: any) => t.verse_key === v.verse_key)?.text || '',
@@ -75,7 +75,6 @@ export function QuranReader() {
       });
 
     } catch (error) {
-      console.error("Error fetching surah content:", error);
       toast({
         variant: 'destructive',
         title: 'Failed to load Surah',
@@ -141,7 +140,6 @@ export function QuranReader() {
             const playPromise = audioRef.current.play();
             if (playPromise !== undefined) {
               playPromise.catch(e => {
-                  console.error("Audio play failed on source change:", e);
                   setIsPlaying(false);
               });
             }
@@ -150,7 +148,7 @@ export function QuranReader() {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioUrl]);
+  }, [audioUrl, isPlaying]);
 
   const handlePlayPause = () => {
     if (isPlaying) {
