@@ -117,7 +117,6 @@ export function QuranReader() {
 
     const verseKey = getVerseKeyForAudio(verse);
     if (!verseKey) {
-      console.error("Could not determine verse key for audio.", verse);
       toast({
           variant: "destructive",
           title: "Audio Playback Error",
@@ -133,14 +132,16 @@ export function QuranReader() {
   };
   
   useEffect(() => {
-    if (audioUrl && audioRef.current && isPlaying) {
-      audioRef.current.src = audioUrl;
-      audioRef.current.load();
-      audioRef.current.play().catch(e => {
-        console.error("Audio play failed on source change:", e);
-      });
-    } else if (!isPlaying && audioRef.current) {
-        audioRef.current.pause();
+    if (audioUrl && audioRef.current) {
+        if (isPlaying) {
+            audioRef.current.src = audioUrl;
+            audioRef.current.load();
+            audioRef.current.play().catch(e => {
+                console.error("Audio play failed on source change:", e);
+            });
+        } else {
+            audioRef.current.pause();
+        }
     }
   }, [audioUrl, isPlaying]);
 
@@ -191,7 +192,6 @@ export function QuranReader() {
   };
 
   const onAudioError = (e: any) => {
-    console.error(`Audio Error: Failed to load source ${audioUrl}`, {error: e});
     toast({
       variant: "destructive",
       title: "Audio Playback Error",
