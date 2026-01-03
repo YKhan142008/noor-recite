@@ -26,7 +26,7 @@ export function QuranReader() {
   const [isClient, setIsClient] = useState(false);
   const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('20'); // Default to Clear Quran
+  const [selectedTranslationId, setSelectedTranslationId] = useState<string>('131'); // Default to Saheeh International
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
@@ -252,7 +252,7 @@ export function QuranReader() {
                 <Select value={selectedTranslationId} onValueChange={setSelectedTranslationId}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Translation" />
-                  </SelectTrigger>
+                  </Trigger>
                   <SelectContent>
                         <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">English</p>
                         {englishTranslations.map((translation) => (
@@ -274,7 +274,7 @@ export function QuranReader() {
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Reciter" />
-                </SelectTrigger>
+                </Trigger>
                 <SelectContent>
                   {reciters.map((reciter) => (
                     <SelectItem key={reciter.id} value={reciter.id}>
@@ -358,8 +358,7 @@ export function QuranReader() {
                         )}
                       </p>
                       <VerseTranslation 
-                        verse={verse}
-                        translations={translations}
+                        translation={verse.translation}
                         selectedTranslationId={selectedTranslationId}
                       />
                      </div>

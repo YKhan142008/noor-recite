@@ -3,8 +3,7 @@ export interface Verse {
   id: number;
   arabic: string;
   verse_key: string;
-  translation: string; // Simplified
-  translations: { [key: string]: string }; // Kept for compatibility if needed elsewhere
+  translation: string;
 }
 
 export interface Surah {

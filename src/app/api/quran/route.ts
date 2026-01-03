@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     const translationsMap = new Map<string, string>();
     translationData.translations.forEach((t: { verse_key: string; text: string }) => {
         // Strip out HTML tags like <sup> which are common in some translations
-        const cleanedText = t.text.replace(/<sup[^>]*>.*?<\/sup>/g, '');
+        const cleanedText = t.text.replace(/<[^>]*>/g, '');
         translationsMap.set(t.verse_key, cleanedText);
     });
     
