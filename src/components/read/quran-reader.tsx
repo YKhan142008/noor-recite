@@ -359,5 +359,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
-    

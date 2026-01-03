@@ -51,19 +51,20 @@ export async function GET(request: Request) {
             if (!translationsMap.has(t.verse_key)) {
                 translationsMap.set(t.verse_key, {});
             }
-            translationsMap.get(t.verse_key)![transId] = t.text;
+            const verseTranslations = translationsMap.get(t.verse_key)!;
+            verseTranslations[transId] = t.text.replace(/<sup[^>]*>.*?<\/sup>/g, '');
         });
     });
     
     // Attach the mapped translations to each verse
     const combinedVerses = versesData.verses.map((verse: any) => ({
       ...verse,
+      arabic: verse.text_uthmani,
       translations: translationsMap.get(verse.verse_key) || {},
     }));
 
     return NextResponse.json({
       verses: combinedVerses,
-      // We don't need to return the raw translations array anymore
     });
 
   } catch (error: any) {
@@ -74,5 +75,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
-    
