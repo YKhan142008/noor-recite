@@ -30,6 +30,10 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Get the readable stream from the response body
+    const body = audioResponse.body;
+    
+    // Create new headers and forward the relevant ones from the original response
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
     responseHeaders.set('Accept-Ranges', audioResponse.headers.get('Accept-Ranges') || 'bytes');
@@ -44,8 +48,10 @@ export async function GET(request: NextRequest) {
       responseHeaders.set('Content-Range', contentRange);
     }
 
-    return new NextResponse(audioResponse.body, {
-      status: audioResponse.status,
+    // Return a new NextResponse with the stream, status, and headers
+    return new NextResponse(body, {
+      status: audioResponse.status, // Forward the original status (e.g., 200 or 206)
+      statusText: audioResponse.statusText,
       headers: responseHeaders,
     });
 

@@ -66,7 +66,7 @@ export function QuranReader() {
               arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
               english: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
               indonesian: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.',
-              verse_key: '1:1'
+              verse_key: `${surahId}:0` // Using a placeholder key
             });
          }
       }
@@ -98,6 +98,11 @@ export function QuranReader() {
 
   const getVerseKeyForAudio = (verse: Verse) => {
     if (!verse.verse_key) return null;
+    // Bismillah for other surahs has a placeholder key like '2:0' which we treat as verse 1 for audio
+    if (verse.id === 0 && verse.verse_key.endsWith(':0')) {
+        const surah = verse.verse_key.split(':')[0];
+        return `${surah.padStart(3, '0')}001`;
+    }
     const [surah, ayah] = verse.verse_key.split(':');
     return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
   }
@@ -105,6 +110,12 @@ export function QuranReader() {
   const playVerse = async (verse: Verse) => {
     const selectedReciter = reciters.find(r => r.id === selectedReciterId);
     if (!selectedReciter || !selectedSurahContent) return;
+
+    // Don't play the Bismillah of At-Tawbah if it exists (it shouldn't, but as a safeguard)
+    if (selectedSurahContent.id === 9 && verse.id === 0) {
+        playNextVerse();
+        return;
+    }
 
     const verseKey = getVerseKeyForAudio(verse);
     if (!verseKey) {
@@ -130,7 +141,7 @@ export function QuranReader() {
       audioRef.current.load();
       audioRef.current.play().catch(e => {
         console.error("Audio play failed on source change:", e);
-        // Don't stop playback here, let the onError handler do it.
+        // Let the onError handler manage the UI state.
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,7 +152,7 @@ export function QuranReader() {
       setIsPlaying(false);
       audioRef.current?.pause();
     } else {
-      if (currentVerseId !== null && audioRef.current && audioRef.current.src) {
+      if (currentVerseId !== null && audioRef.current?.src) {
         setIsPlaying(true);
         audioRef.current.play().catch(e => console.error("Audio play failed on resume:", e));
       } else if (selectedSurahContent?.verses.length) {
@@ -304,5 +315,6 @@ export function QuranReader() {
     </Card>
   );
 }
+    
 
     
