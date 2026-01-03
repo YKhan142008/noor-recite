@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -141,7 +140,7 @@ export function QuranReader() {
       audioRef.current.load();
       audioRef.current.play().catch(e => {
         console.error("Audio play failed on source change:", e);
-        // Let the onError handler manage the UI state.
+        // The onAudioError handler will show a toast to the user
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,6 +155,7 @@ export function QuranReader() {
         setIsPlaying(true);
         audioRef.current.play().catch(e => console.error("Audio play failed on resume:", e));
       } else if (selectedSurahContent?.verses.length) {
+        // If nothing is playing, start from the first verse
         playVerse(selectedSurahContent.verses[0]);
       }
     }
@@ -172,7 +172,7 @@ export function QuranReader() {
     }
   };
   
-  const playPrevVerse = () => {
+  const playPrevVerse = ().  => {
     if (currentVerseId === null || !selectedSurahContent) return;
     const currentVerseIndex = selectedSurahContent.verses.findIndex(v => v.id === currentVerseId);
     if (currentVerseIndex > 0) {
@@ -315,6 +315,4 @@ export function QuranReader() {
     </Card>
   );
 }
-    
-
     
