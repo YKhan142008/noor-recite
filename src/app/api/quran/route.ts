@@ -53,7 +53,7 @@ export async function GET(request: Request) {
         translationsMap.set(t.verse_key, cleanedText);
     });
     
-    // Attach the mapped translation to each verse
+    // Combine the data, ensuring the final object shape matches the `Verse` type
     const combinedVerses = versesData.verses.map((verse: any) => ({
       id: verse.id,
       verse_key: verse.verse_key,
