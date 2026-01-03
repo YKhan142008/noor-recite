@@ -2,9 +2,8 @@
 export interface Verse {
   id: number;
   arabic: string;
-  english: string;
-  indonesian: string;
   verse_key: string;
+  translations: { [key: string]: string };
 }
 
 export interface Surah {
@@ -38,4 +37,11 @@ export interface Achievement {
   description: string;
   unlocked: boolean;
   imageId: string;
+}
+
+export interface Translation {
+    id: number;
+    language: string;
+    name: string;
+    author_name: string;
 }

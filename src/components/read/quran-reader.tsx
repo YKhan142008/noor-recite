@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { allSurahs as surahs, reciters, translations } from '@/lib/data';
+import { allSurahs as surahs, reciters } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Verse, Surah, Reciter, Translation } from '@/lib/types';
@@ -218,9 +218,6 @@ export function QuranReader() {
   }
 
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
-  const selectedTranslationMeta = translations.find(t => t.id.toString() === selectedTranslationId);
-  const englishTranslations = translations.filter(t => t.language === 'en');
-  const urduTranslations = translations.filter(t => t.language === 'ur');
 
   return (
     <Card className="overflow-hidden">
@@ -249,15 +246,8 @@ export function QuranReader() {
                     <SelectValue placeholder="Select Translation" />
                   </SelectTrigger>
                   <SelectContent>
-                      <DropdownMenuLabel>English</DropdownMenuLabel>
-                      {englishTranslations.map(t => (
-                        <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
-                      ))}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel>Urdu</DropdownMenuLabel>
-                      {urduTranslations.map(t => (
-                        <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
-                      ))}
+                      <SelectItem value="131">English - Saheeh International</SelectItem>
+                      <SelectItem value="33">Indonesian</SelectItem>
                   </SelectContent>
                 </Select>
             </div>
@@ -348,10 +338,9 @@ export function QuranReader() {
                         </span>
                       )}
                     </p>
-                    {selectedTranslationMeta && verse.translations && verse.translations[selectedTranslationId] && (
+                    {verse.translations && verse.translations[selectedTranslationId] && (
                        <div className='text-left' dir="ltr">
                         <p className="mt-4 text-foreground/80 leading-relaxed">{verse.translations[selectedTranslationId]}</p>
-                        <p className="text-sm text-muted-foreground mt-2">— {selectedTranslationMeta.author_name}, {selectedTranslationMeta.name}</p>
                        </div>
                     )}
                    </div>
