@@ -99,7 +99,8 @@ export function QuranReader() {
   };
   
   const playVerse = (verseKey: string) => {
-    const verse = selectedSurah?.verses.find(v => v.verse_key === verseKey);
+    if (!selectedSurah) return;
+    const verse = selectedSurah.verses.find(v => v.verse_key === verseKey);
     if (!verse) return;
 
     const fileId = verseKeyToEveryAyahId(verseKey);
@@ -377,3 +378,5 @@ export function QuranReader() {
     </Card>
   );
 }
+
+    

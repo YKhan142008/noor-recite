@@ -24,3 +24,5 @@ export function VerseTranslation({ translation, selectedTranslationId }: VerseTr
         </div>
     );
 }
+
+    
