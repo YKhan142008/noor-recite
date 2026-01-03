@@ -1,8 +1,8 @@
 
 export interface Verse {
   id: number;
-  arabic: string;
   verse_key: string;
+  arabic: string;
   translation: string;
 }
 
