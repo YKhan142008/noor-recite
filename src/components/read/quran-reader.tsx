@@ -57,9 +57,33 @@ export function QuranReader() {
       const surahInfo = surahs.find(s => s.id.toString() === surahId);
       if (!surahInfo) throw new Error('Surah not found in metadata');
       
+      const normalizedVerses = data.verses.map((v: any) => {
+        let map: Record<string, string> = {};
+
+        if (Array.isArray(v.translations)) {
+            for (const t of v.translations) {
+            map[t.id.toString()] = t.text;
+            }
+        } else {
+            // This handles the case where the API returns an object directly
+            map = v.translations || {};
+        }
+
+        // The API I fixed in the last step already returns a keyed object.
+        // This logic handles both cases to be safe.
+        const finalTranslations = v.translations && v.translations[translationId] 
+            ? { [translationId]: v.translations[translationId] }
+            : map;
+
+        return {
+            ...v,
+            translations: finalTranslations,
+        };
+      });
+
       setSelectedSurah({
         ...surahInfo,
-        verses: data.verses,
+        verses: normalizedVerses,
       });
       setCurrentVerseKey(null);
 
@@ -85,8 +109,9 @@ export function QuranReader() {
   const stopPlayback = () => {
     if (audioRef.current) {
       audioRef.current.pause();
-      // Setting src to empty string is a common way to stop buffering and abort requests
-      audioRef.current.src = '';
+      // More robust way to stop loading, prevents erroneous error events
+      audioRef.current.removeAttribute('src'); 
+      audioRef.current.load();
     }
     setIsPlaying(false);
     setCurrentVerseKey(null);
@@ -105,12 +130,15 @@ export function QuranReader() {
         audioRef.current.load();
         audioRef.current.play().catch(e => {
             console.error("Audio play failed:", e);
-            toast({
-              variant: "destructive",
-              title: "Audio Playback Error",
-              description: "Could not play the requested audio file.",
-            });
-            setIsPlaying(false);
+            // This error is for when playback can't *start*
+            if (isPlaying) {
+                 toast({
+                    variant: "destructive",
+                    title: "Audio Playback Error",
+                    description: "Could not play the requested audio file.",
+                });
+                setIsPlaying(false);
+            }
         });
     }
 
@@ -167,10 +195,15 @@ export function QuranReader() {
   };
 
   const onAudioError = (e: any) => {
-    // This prevents the error toast from showing up when we intentionally stop playback by changing src
-    if (audioRef.current && !audioRef.current.src.includes('http')) {
+    const audio = audioRef.current;
+    if (!audio) return;
+    
+    // Ignore errors caused by stopping/clearing the source intentionally
+    const error = audio.error;
+    if (!audio.currentSrc || (error && error.code === MediaError.MEDIA_ERR_ABORTED)) {
         return;
     }
+
     toast({
       variant: "destructive",
       title: "Audio Playback Error",
@@ -364,3 +397,5 @@ export function QuranReader() {
     </Card>
   );
 }
+
+    
