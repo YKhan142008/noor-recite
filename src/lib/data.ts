@@ -120,10 +120,7 @@ export const allSurahs: Omit<Surah, 'verses'>[] = [
 
 export const reciters: Reciter[] = [
     { id: 'alafasy', name: 'Mishary Rashid Alafasy', audio_url_path: 'Alafasy/mp3' },
-    { id: 'husary', name: 'Mahmoud Khalil Al-Husary', audio_url_path: 'Husary/mp3' },
     { id: 'sudais', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Sudais/mp3' },
-    { id: 'ghamdi', name: 'Saad al-Ghamdi', audio_url_path: 'Ghamdi/mp3' },
-    { id: 'shuraym', name: 'Saud ash-Shuraym', audio_url_path: 'Shuraym/mp3' },
 ];
 
 // As per https://quran.com/resources/translations
