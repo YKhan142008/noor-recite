@@ -259,7 +259,9 @@ export function QuranReader() {
         <div className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
           {isLoading ? (
              <div className="space-y-8">
-              <Skeleton className="h-16 w-1/2 mx-auto" />
+              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-4 mt-2" dir="rtl">
+                <Skeleton className="h-16 w-1/2 mx-auto" />
+              </h2>
               <div className="space-y-4">
                 <Skeleton className="h-32 w-full" />
                 <Skeleton className="h-32 w-full" />
@@ -312,10 +314,12 @@ export function QuranReader() {
                   </div>
                    <div className="col-span-11 space-y-4">
                      <p className="text-3xl lg:text-4xl leading-relaxed text-right font-arabic" dir="rtl">
-                      {verse.arabic} 
-                      <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
-                        {verse.id.toLocaleString('ar-SA')}
-                      </span>
+                      {verse.arabic}
+                      {verse.id && (
+                        <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
+                          {verse.id.toLocaleString('ar-SA')}
+                        </span>
+                      )}
                     </p>
                     <p className="mt-4 text-foreground/80 leading-relaxed">{verse[translation]}</p>
                    </div>
