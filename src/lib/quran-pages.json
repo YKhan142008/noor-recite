@@ -185,7 +185,7 @@
   { "page": 183, "surah": 8, "from": 41, "to": 45 },
   { "page": 184, "surah": 8, "from": 46, "to": 52 },
   { "page": 185, "surah": 8, "from": 53, "to": 61 },
-  { "page": 186, "surah": 8, from: 62, to: 69 },
+  { "page": 186, "surah": 8, "from": 62, "to": 69 },
   { "page": 187, "surah": 8, "from": 70, "to": 75 },
   { "page": 188, "surah": 9, "from": 1, "to": 6 },
   { "page": 189, "surah": 9, "from": 7, "to": 13 },
@@ -430,5 +430,7 @@
   { "page": 428, "surah": 33, "from": 24, "to": 30 },
   { "page": 429, "surah": 33, "from": 31, "to": 35 },
   { "page": 430, "surah": 33, "from": 36, "to": 43 },
-  { "page": 431, "surah": 33, "from": 44, "to": 50 },
-  { "page":
+  { "page": 431, "surah": 33, "from": 44, "to": 50 }
+]
+
+    
