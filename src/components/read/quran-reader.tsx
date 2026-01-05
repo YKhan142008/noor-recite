@@ -236,12 +236,14 @@ export function QuranReader({ params }: QuranReaderProps) {
   
   const handleSurahNavigate = (direction: 'next' | 'previous') => {
     const currentSurahId = selectedSurah?.id;
-    if (!currentSurahId) return;
+    if (currentSurahId === undefined) return;
 
-    if (direction === 'next' && currentSurahId < 114) {
-      router.push(`/read/${currentSurahId + 1}`);
-    } else if (direction === 'previous' && currentSurahId > 1) {
-      router.push(`/read/${currentSurahId - 1}`);
+    if (direction === 'next') {
+      const nextId = currentSurahId === 114 ? 1 : currentSurahId + 1;
+      router.push(`/read/${nextId}`);
+    } else { // 'previous'
+      const prevId = currentSurahId === 1 ? 114 : currentSurahId - 1;
+      router.push(`/read/${prevId}`);
     }
   };
 
@@ -350,8 +352,6 @@ export function QuranReader({ params }: QuranReaderProps) {
     );
   }
 
-  const selectedSurahId = params.slug?.[0] || '1';
-  const currentSurahNum = parseInt(selectedSurahId, 10);
   const isSurahComplete = selectedSurah ? progress[selectedSurah.id] === 100 : false;
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
 
@@ -493,7 +493,6 @@ export function QuranReader({ params }: QuranReaderProps) {
                 <div className="flex justify-between items-center">
                     <Button 
                       onClick={() => handleSurahNavigate('previous')} 
-                      disabled={currentSurahNum <= 1}
                       variant="outline"
                     >
                       <ArrowLeft className="mr-2" />
@@ -501,7 +500,6 @@ export function QuranReader({ params }: QuranReaderProps) {
                     </Button>
                     <Button 
                       onClick={() => handleSurahNavigate('next')} 
-                      disabled={currentSurahNum >= 114}
                       variant="outline"
                     >
                       Next Surah
@@ -520,5 +518,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     </Card>
   );
 }
+
+    
 
     
