@@ -9,15 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Verse, Surah, Reciter, Bookmark as BookmarkType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { cn } from '@/lib/utils';
 import { VerseTranslation } from './verse-translation';
 import { useBookmarks } from '@/context/BookmarkContext';
 import { useSurahProgress } from '@/context/SurahProgressContext';
-import Link from 'next/link';
 
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
@@ -328,8 +325,7 @@ export function QuranReader({ params }: QuranReaderProps) {
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           <div className="bg-muted/50 p-4 border-b">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Skeleton className="h-10 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
@@ -356,7 +352,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
@@ -386,15 +382,6 @@ export function QuranReader({ params }: QuranReaderProps) {
                     ))}
                   </SelectContent>
               </Select>
-            </div>
-            <div className="flex items-center space-x-2 justify-self-start md:justify-self-center">
-                <Switch 
-                    id="mark-as-complete" 
-                    checked={isSurahComplete}
-                    onCheckedChange={handleMarkAsComplete}
-                    disabled={!selectedSurah}
-                />
-                <Label htmlFor="mark-as-complete" className="text-sm font-medium">Mark as Complete</Label>
             </div>
           </div>
         </div>
@@ -477,23 +464,36 @@ export function QuranReader({ params }: QuranReaderProps) {
                 </div>
               ))}
               </div>
-              <div className="flex justify-between items-center mt-12 pt-8 border-t">
-                  <Button 
-                    onClick={() => handleSurahNavigate('previous')} 
-                    disabled={currentSurahNum <= 1}
-                    variant="outline"
-                  >
-                    <ArrowLeft className="mr-2" />
-                    Previous Surah
-                  </Button>
-                  <Button 
-                    onClick={() => handleSurahNavigate('next')} 
-                    disabled={currentSurahNum >= 114}
-                    variant="outline"
-                  >
-                    Next Surah
-                    <ArrowRight className="ml-2" />
-                  </Button>
+              <div className="mt-12 pt-8 border-t space-y-4 text-center">
+                 {isSurahComplete ? (
+                    <Button onClick={() => handleMarkAsComplete(false)} variant="outline">
+                      <XCircle className="mr-2" />
+                      Un-mark as Complete
+                    </Button>
+                 ) : (
+                    <Button onClick={() => handleMarkAsComplete(true)}>
+                      <CheckCircle className="mr-2" />
+                      Mark Surah as Complete
+                    </Button>
+                 )}
+                <div className="flex justify-between items-center">
+                    <Button 
+                      onClick={() => handleSurahNavigate('previous')} 
+                      disabled={currentSurahNum <= 1}
+                      variant="outline"
+                    >
+                      <ArrowLeft className="mr-2" />
+                      Previous Surah
+                    </Button>
+                    <Button 
+                      onClick={() => handleSurahNavigate('next')} 
+                      disabled={currentSurahNum >= 114}
+                      variant="outline"
+                    >
+                      Next Surah
+                      <ArrowRight className="ml-2" />
+                    </Button>
+                </div>
               </div>
             </>
           ) : (
@@ -506,5 +506,3 @@ export function QuranReader({ params }: QuranReaderProps) {
     </Card>
   );
 }
-
-    

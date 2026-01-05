@@ -12,29 +12,17 @@ const SurahProgressContext = createContext<SurahProgressContextType | undefined>
 
 export const SurahProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [progress, setProgress] = useState<{ [surahId: number]: number }>({});
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const savedProgress = localStorage.getItem('quranSurahProgress');
-      if (savedProgress) {
-        setProgress(JSON.parse(savedProgress));
-      }
-    } catch (error) {
-      console.error("Failed to load surah progress from localStorage", error);
+    const savedProgress = localStorage.getItem('quranSurahProgress');
+    if (savedProgress && Object.keys(JSON.parse(savedProgress)).length > 0) {
+      setProgress(JSON.parse(savedProgress));
     }
-    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
-      try {
-        localStorage.setItem('quranSurahProgress', JSON.stringify(progress));
-      } catch (error) {
-        console.error("Failed to save surah progress to localStorage", error);
-      }
-    }
-  }, [progress, isLoaded]);
+    localStorage.setItem('quranSurahProgress', JSON.stringify(progress));
+  }, [progress]);
 
   const updateProgress = (surahId: number, percentage: number) => {
     setProgress((prev) => ({
