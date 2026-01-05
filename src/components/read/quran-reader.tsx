@@ -32,7 +32,6 @@ export function QuranReader({ params }: QuranReaderProps) {
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
-  const [selectedSurahId, setSelectedSurahId] = useState<string>(params.slug?.[0] || '1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
@@ -119,7 +118,6 @@ export function QuranReader({ params }: QuranReaderProps) {
     
     // Only fetch if the surah ID from the URL is different from the currently loaded one.
     if (surahIdFromUrl !== selectedSurah?.id.toString()) {
-      setSelectedSurahId(surahIdFromUrl);
       fetchSurahContent(surahIdFromUrl);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -240,12 +238,10 @@ export function QuranReader({ params }: QuranReaderProps) {
     }
   };
   
-  const handleSurahSelectChange = (surahId: string) => {
-    router.push(`/read/${surahId}`);
-  };
-  
   const handleSurahNavigate = (direction: 'next' | 'previous') => {
-    const currentSurahId = parseInt(selectedSurahId, 10);
+    const currentSurahId = selectedSurah?.id;
+    if (!currentSurahId) return;
+
     if (direction === 'next' && currentSurahId < 114) {
       router.push(`/read/${currentSurahId + 1}`);
     } else if (direction === 'previous' && currentSurahId > 1) {
@@ -298,6 +294,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     );
   }
 
+  const selectedSurahId = params.slug?.[0] || '1';
   const currentSurahNum = parseInt(selectedSurahId, 10);
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
 
@@ -306,21 +303,8 @@ export function QuranReader({ params }: QuranReaderProps) {
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Surah</label>
-              <Select value={selectedSurahId} onValueChange={handleSurahSelectChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Surah" />
-                </SelectTrigger>
-                <SelectContent>
-                  {surahs.map((surah) => (
-                    <SelectItem key={surah.id} value={surah.id.toString()}>
-                      {surah.id}. {surah.name} ({surah.englishName})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* The Surah Select is now handled by the sidebar */}
+            <div/>
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
