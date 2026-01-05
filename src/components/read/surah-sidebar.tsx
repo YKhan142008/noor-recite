@@ -8,20 +8,16 @@ import { allSurahs } from '@/lib/data';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Menu, ChevronDown, BookOpen } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useSurahProgress } from '@/context/SurahProgressContext';
-import { Progress } from '@/components/ui/progress';
-
 
 type SurahSidebarProps = {
   currentSurahId: string;
+  isSheet?: boolean;
+  onSelect?: () => void;
 };
 
-export function SurahSidebar({ currentSurahId }: SurahSidebarProps) {
+export function SurahSidebar({ currentSurahId, isSheet = false, onSelect }: SurahSidebarProps) {
   const [search, setSearch] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { progress } = useSurahProgress();
 
@@ -31,12 +27,12 @@ export function SurahSidebar({ currentSurahId }: SurahSidebarProps) {
       surah.englishName.toLowerCase().includes(search.toLowerCase()) ||
       surah.id.toString().includes(search)
   );
-  
-  const currentSurah = allSurahs.find(s => s.id.toString() === currentSurahId);
 
   const handleSurahSelect = (surahId: number) => {
     router.push(`/read/${surahId}`);
-    setIsOpen(false);
+    if (onSelect) {
+      onSelect();
+    }
   }
 
   const SurahListItem = ({ surah }: { surah: (typeof allSurahs)[0] }) => {
@@ -62,57 +58,32 @@ export function SurahSidebar({ currentSurahId }: SurahSidebarProps) {
     )
   }
 
-  return (
+  const SidebarContent = () => (
     <>
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col w-80 border-r bg-muted/20 h-screen sticky top-0">
-        <div className="p-4 border-b">
-          <Input
-            placeholder="Search Surah..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="p-4 border-b">
+        <Input
+          placeholder="Search Surah..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+      <ScrollArea className={isSheet ? "h-[calc(100vh-120px)]" : "flex-1"}>
+        <div className="py-2">
+          {filteredSurahs.map((surah) => (
+            <SurahListItem key={surah.id} surah={surah} />
+          ))}
         </div>
-        <ScrollArea className="flex-1">
-          <div className="py-2">
-            {filteredSurahs.map((surah) => (
-              <SurahListItem key={surah.id} surah={surah} />
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
-
-      {/* Mobile Sheet Trigger */}
-      <div className="lg:hidden sticky top-[72px] z-30 flex justify-start p-4">
-         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-                <Button variant="outline">
-                    <BookOpen className="mr-2" />
-                    <span>{currentSurah?.englishName || 'Select Surah'}</span>
-                    <ChevronDown className={cn("ml-2 h-4 w-4 transition-transform", isOpen && "rotate-180")} />
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-full max-w-sm">
-                 <SheetHeader className="p-4 border-b text-left">
-                     <SheetTitle>Select a Surah</SheetTitle>
-                 </SheetHeader>
-                <div className="p-4 border-b">
-                    <Input
-                        placeholder="Search Surah..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-                <ScrollArea className="h-[calc(100vh-120px)]">
-                    <div className="py-2">
-                    {filteredSurahs.map((surah) => (
-                      <SurahListItem key={surah.id} surah={surah} />
-                    ))}
-                    </div>
-                </ScrollArea>
-            </SheetContent>
-        </Sheet>
-      </div>
+      </ScrollArea>
     </>
+  )
+
+  if (isSheet) {
+    return <SidebarContent />;
+  }
+
+  return (
+    <div className="hidden lg:flex flex-col w-80 border-r bg-muted/20 h-full">
+      <SidebarContent />
+    </div>
   );
 }

@@ -31,15 +31,15 @@ function getPageForVerse(surahId: number, verseNum: number): number {
 type QuranReaderProps = {
   params: {
     slug: string[];
-  }
+  };
+  setCurrentPage: (page: number) => void;
 }
 
-export function QuranReader({ params }: QuranReaderProps) {
+export function QuranReader({ params, setCurrentPage }: QuranReaderProps) {
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
@@ -318,11 +318,9 @@ export function QuranReader({ params }: QuranReaderProps) {
         }
         
         const newPage = getPageForVerse(surahNum, verseNum);
-        if (newPage !== currentPage) {
-            setCurrentPage(newPage);
-        }
+        setCurrentPage(newPage);
     }
-  }, [selectedSurah, progress, updateProgress, currentPage]);
+  }, [selectedSurah, progress, updateProgress, setCurrentPage]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
@@ -351,21 +349,13 @@ export function QuranReader({ params }: QuranReaderProps) {
 
   if (!isClient) {
     return (
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <div className="bg-muted/50 p-4 border-b">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </div>
-          <div className="p-6 space-y-8">
-            <Skeleton className="h-12 w-1/2 mx-auto" />
-            <div className="space-y-4">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
+      <Card className="overflow-hidden m-4 sm:m-6 lg:m-8">
+        <CardContent className="p-6 space-y-8">
+          <Skeleton className="h-12 w-1/2 mx-auto" />
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
           </div>
         </CardContent>
       </Card>
@@ -376,54 +366,8 @@ export function QuranReader({ params }: QuranReaderProps) {
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden shadow-none border-none rounded-none">
       <CardContent className="p-0">
-        <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
-             <div>
-              <label className="text-sm font-medium mb-1 block">Reciter</label>
-              <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Reciter" />
-                </SelectTrigger>
-                <SelectContent>
-                  {reciters.map((reciter) => (
-                    <SelectItem key={reciter.id} value={reciter.id}>
-                      {reciter.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Go to Ayah</label>
-              <Select onValueChange={handleAyahJump} disabled={!selectedSurah || selectedSurah.verses.length === 0}>
-                  <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Ayah" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {selectedSurah?.verses.map((verse) => (
-                      <SelectItem key={verse.verse_key} value={verse.verse_key}>
-                          Ayah {verse.verse_key.split(':')[1]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-              </Select>
-            </div>
-            <div>
-                <label className="text-sm font-medium mb-1 block">Action</label>
-                <Button variant="outline" className="w-full" onClick={handleResetProgress} disabled={!selectedSurah}>
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    Read Again
-                </Button>
-            </div>
-            <div className="text-right">
-                <label className="text-sm font-medium mb-1 block">Page</label>
-                <span className="text-lg font-bold h-10 flex items-center justify-end">{currentPage}</span>
-            </div>
-          </div>
-        </div>
-        
         <audio ref={audioRef} onEnded={onAudioEnded} onError={onAudioError} className="hidden" />
 
         <div ref={readerContainerRef} className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
@@ -440,9 +384,38 @@ export function QuranReader({ params }: QuranReaderProps) {
             </div>
           ) : selectedSurah ? (
             <>
-              <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-12 mt-8" dir="rtl">
-                {selectedSurah.name}
-              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div>
+                  <h2 className="text-5xl font-arabic text-center font-bold text-primary" dir="rtl">
+                    {selectedSurah.name}
+                  </h2>
+                </div>
+                <div className='flex flex-col md:flex-row gap-2 md:items-center md:justify-end'>
+                    <div className='flex-1'>
+                        <label className="text-sm font-medium mb-1 block">Reciter</label>
+                        <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Select Reciter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {reciters.map((reciter) => (
+                                <SelectItem key={reciter.id} value={reciter.id}>
+                                {reciter.name}
+                                </SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className='flex-1'>
+                        <label className="text-sm font-medium mb-1 block opacity-0 hidden md:block">Action</label>
+                        <Button variant="outline" className="w-full" onClick={handleResetProgress} disabled={!selectedSurah}>
+                            <RefreshCcw className="mr-2 h-4 w-4" />
+                            Read Again
+                        </Button>
+                    </div>
+                </div>
+              </div>
+
               <div className='text-center mb-8'>
                 <Button variant="ghost" onClick={handlePlayPause}>
                   {isPlaying ? <Pause className='mr-2' /> : <Play className='mr-2' />}
