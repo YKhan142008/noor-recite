@@ -271,6 +271,15 @@ export function QuranReader({ params }: QuranReaderProps) {
 
   const handleScroll = useCallback(() => {
     if (!selectedSurah || progress[selectedSurah.id] === 100) return;
+    
+    // Check if scrolled to the bottom of the page
+    const isAtBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 5;
+    if (isAtBottom) {
+      if (progress[selectedSurah.id] !== 100) {
+        updateProgress(selectedSurah.id, 100);
+      }
+      return;
+    }
 
     let topVerseKey = null;
     const offset = 160; 
@@ -347,7 +356,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
@@ -378,16 +387,7 @@ export function QuranReader({ params }: QuranReaderProps) {
                   </SelectContent>
               </Select>
             </div>
-            <div>
-                <label className="text-sm font-medium mb-1 block opacity-0 md:invisible">Bookmarks</label>
-                <Button asChild variant="outline" className="w-full">
-                    <Link href="/bookmarks">
-                        <Bookmark className="mr-2"/>
-                        My Bookmarks
-                    </Link>
-                </Button>
-            </div>
-             <div className="flex items-center space-x-2 justify-self-start md:justify-self-center">
+            <div className="flex items-center space-x-2 justify-self-start md:justify-self-center">
                 <Switch 
                     id="mark-as-complete" 
                     checked={isSurahComplete}
@@ -506,3 +506,5 @@ export function QuranReader({ params }: QuranReaderProps) {
     </Card>
   );
 }
+
+    
