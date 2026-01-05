@@ -29,13 +29,11 @@ function getPageForVerse(surahId: number, verseNum: number): number {
 }
 
 type QuranReaderProps = {
-  params: {
-    slug: string[];
-  };
+  slug: string[];
   setCurrentPage: (page: number) => void;
 }
 
-export function QuranReader({ params, setCurrentPage }: QuranReaderProps) {
+export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
@@ -102,7 +100,7 @@ export function QuranReader({ params, setCurrentPage }: QuranReaderProps) {
 
       setCurrentVerseKey(null);
       
-      const targetVerseNumStr = params.slug?.[1];
+      const targetVerseNumStr = slug?.[1];
       if (targetVerseNumStr) {
         const targetVerseNum = parseInt(targetVerseNumStr, 10);
         const targetVerseKey = `${surahId}:${targetVerseNum}`;
@@ -126,13 +124,13 @@ export function QuranReader({ params, setCurrentPage }: QuranReaderProps) {
   };
 
   useEffect(() => {
-    const surahIdFromUrl = params.slug?.[0] || '1';
+    const surahIdFromUrl = slug?.[0] || '1';
     
     if (surahIdFromUrl !== selectedSurah?.id.toString()) {
       fetchSurahContent(surahIdFromUrl);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.slug]);
+  }, [slug]);
 
 
   const stopPlayback = () => {
