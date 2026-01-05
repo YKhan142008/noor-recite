@@ -52,11 +52,14 @@ export function QuranReader({ params }: QuranReaderProps) {
   }, []);
 
   const handleAyahJump = (verseKey: string) => {
-    if (verseRefs.current[verseKey]) {
-      verseRefs.current[verseKey]?.scrollIntoView({
-        behavior: 'auto',
-        block: 'start',
-      });
+    const verseElement = verseRefs.current[verseKey];
+    if (verseElement) {
+        const topPos = verseElement.getBoundingClientRect().top + window.pageYOffset;
+        const offset = 150; // Offset for sticky header
+        window.scrollTo({
+            top: topPos - offset,
+            behavior: 'auto'
+        });
     }
   };
 
@@ -114,10 +117,11 @@ export function QuranReader({ params }: QuranReaderProps) {
   useEffect(() => {
     const surahIdFromUrl = params.slug?.[0] || '1';
     
-    if (surahIdFromUrl !== selectedSurahId) {
+    // Only fetch if the surah ID from the URL is different from the currently loaded one.
+    if (surahIdFromUrl !== selectedSurah?.id.toString()) {
       setSelectedSurahId(surahIdFromUrl);
+      fetchSurahContent(surahIdFromUrl);
     }
-    fetchSurahContent(surahIdFromUrl);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.slug]);
 
@@ -159,10 +163,15 @@ export function QuranReader({ params }: QuranReaderProps) {
     setCurrentVerseKey(verseKey);
     setIsPlaying(true);
     
-    verseRefs.current[verseKey]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-    });
+    const verseElement = verseRefs.current[verseKey];
+    if (verseElement) {
+      const topPos = verseElement.getBoundingClientRect().top + window.pageYOffset;
+      const offset = 150; // Offset for sticky header
+      window.scrollTo({
+          top: topPos - offset,
+          behavior: 'smooth'
+      });
+    }
   };
 
   const handlePlayPause = () => {
@@ -232,7 +241,6 @@ export function QuranReader({ params }: QuranReaderProps) {
   };
   
   const handleSurahSelectChange = (surahId: string) => {
-    setSelectedSurahId(surahId);
     router.push(`/read/${surahId}`);
   };
   
@@ -290,8 +298,8 @@ export function QuranReader({ params }: QuranReaderProps) {
     );
   }
 
-  const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
   const currentSurahNum = parseInt(selectedSurahId, 10);
+  const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
 
   return (
     <Card className="overflow-hidden">
