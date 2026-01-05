@@ -11,6 +11,7 @@ export interface Surah {
   name: string;
   englishName: string;
   verses: Verse[];
+  total_verses: number;
 }
 
 export interface Reciter {
@@ -52,3 +53,4 @@ export interface Bookmark {
   verse_key: string;
   text: string;
 }
+

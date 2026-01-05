@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,6 +11,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Menu, ChevronDown, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSurahProgress } from '@/context/SurahProgressContext';
+import { Progress } from '@/components/ui/progress';
+
 
 type SurahSidebarProps = {
   currentSurahId: string;
@@ -19,6 +23,7 @@ export function SurahSidebar({ currentSurahId }: SurahSidebarProps) {
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { progress } = useSurahProgress();
 
   const filteredSurahs = allSurahs.filter(
     (surah) =>
@@ -32,6 +37,29 @@ export function SurahSidebar({ currentSurahId }: SurahSidebarProps) {
   const handleSurahSelect = (surahId: number) => {
     router.push(`/read/${surahId}`);
     setIsOpen(false);
+  }
+
+  const SurahListItem = ({ surah }: { surah: (typeof allSurahs)[0] }) => {
+    const surahProgress = progress[surah.id] || 0;
+    return (
+      <Button
+        variant={currentSurahId === surah.id.toString() ? 'secondary' : 'ghost'}
+        className="w-full justify-start rounded-none px-4 py-6 text-left h-auto relative"
+        onClick={() => handleSurahSelect(surah.id)}
+      >
+        <div 
+          className="absolute inset-y-0 left-0 bg-primary/20"
+          style={{ width: `${surahProgress}%`}}
+        />
+        <div className="flex items-center w-full relative">
+          <span className="text-lg font-bold w-12">{surah.id}</span>
+          <div className="flex-1">
+            <p className="font-headline text-base">{surah.englishName}</p>
+            <p className="text-sm text-muted-foreground">{surah.name}</p>
+          </div>
+        </div>
+      </Button>
+    )
   }
 
   return (
@@ -48,20 +76,7 @@ export function SurahSidebar({ currentSurahId }: SurahSidebarProps) {
         <ScrollArea className="flex-1">
           <div className="py-2">
             {filteredSurahs.map((surah) => (
-              <Button
-                key={surah.id}
-                variant={currentSurahId === surah.id.toString() ? 'secondary' : 'ghost'}
-                className="w-full justify-start rounded-none px-4 py-6 text-left"
-                onClick={() => handleSurahSelect(surah.id)}
-              >
-                <div className="flex items-center w-full">
-                  <span className="text-lg font-bold w-12">{surah.id}</span>
-                  <div className="flex-1">
-                    <p className="font-headline text-base">{surah.englishName}</p>
-                    <p className="text-sm text-muted-foreground">{surah.name}</p>
-                  </div>
-                </div>
-              </Button>
+              <SurahListItem key={surah.id} surah={surah} />
             ))}
           </div>
         </ScrollArea>
@@ -91,20 +106,7 @@ export function SurahSidebar({ currentSurahId }: SurahSidebarProps) {
                 <ScrollArea className="h-[calc(100vh-120px)]">
                     <div className="py-2">
                     {filteredSurahs.map((surah) => (
-                      <Button
-                        key={surah.id}
-                        variant={currentSurahId === surah.id.toString() ? 'secondary' : 'ghost'}
-                        className="w-full justify-start rounded-none px-4 py-6 text-left"
-                        onClick={() => handleSurahSelect(surah.id)}
-                      >
-                        <div className="flex items-center w-full">
-                            <span className="text-lg font-bold w-12">{surah.id}</span>
-                            <div className="flex-1">
-                                <p className="font-headline text-base">{surah.englishName}</p>
-                                <p className="text-sm text-muted-foreground">{surah.name}</p>
-                            </div>
-                        </div>
-                      </Button>
+                      <SurahListItem key={surah.id} surah={surah} />
                     ))}
                     </div>
                 </ScrollArea>

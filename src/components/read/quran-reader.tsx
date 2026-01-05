@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { allSurahs as surahs, reciters, activeTranslation } from '@/lib/data';
+import { allSurahs, reciters, activeTranslation } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Verse, Surah, Reciter, Bookmark as BookmarkType } from '@/lib/types';
@@ -11,9 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { cn } from '@/lib/utils';
 import { VerseTranslation } from './verse-translation';
 import { useBookmarks } from '@/context/BookmarkContext';
+import { useSurahProgress } from '@/context/SurahProgressContext';
 import Link from 'next/link';
 
 function verseKeyToEveryAyahId(verseKey: string) {
@@ -43,8 +46,10 @@ export function QuranReader({ params }: QuranReaderProps) {
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement>(null);
   const verseRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  const readerContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { bookmarks, addBookmark, removeBookmark } = useBookmarks();
+  const { progress, updateProgress } = useSurahProgress();
 
   useEffect(() => {
     setIsClient(true);
@@ -79,7 +84,7 @@ export function QuranReader({ params }: QuranReaderProps) {
         throw new Error('API did not return any verses.');
       }
       
-      const surahInfo = surahs.find(s => s.id.toString() === surahId);
+      const surahInfo = allSurahs.find(s => s.id.toString() === surahId);
       if (!surahInfo) throw new Error('Surah not found in metadata');
       
       setSelectedSurah({
@@ -87,6 +92,7 @@ export function QuranReader({ params }: QuranReaderProps) {
         name: surahInfo.name,
         englishName: surahInfo.englishName,
         verses: data.verses,
+        total_verses: surahInfo.total_verses,
       });
 
       setCurrentVerseKey(null);
@@ -94,7 +100,6 @@ export function QuranReader({ params }: QuranReaderProps) {
       const targetVerseNum = params.slug?.[1];
       if (targetVerseNum) {
         const targetVerseKey = `${surahId}:${targetVerseNum}`;
-        // Timeout to allow the DOM to update with the new verses
         setTimeout(() => handleAyahJump(targetVerseKey), 100);
       } else {
         window.scrollTo(0, 0);
@@ -116,7 +121,6 @@ export function QuranReader({ params }: QuranReaderProps) {
   useEffect(() => {
     const surahIdFromUrl = params.slug?.[0] || '1';
     
-    // Only fetch if the surah ID from the URL is different from the currently loaded one.
     if (surahIdFromUrl !== selectedSurah?.id.toString()) {
       fetchSurahContent(surahIdFromUrl);
     }
@@ -163,12 +167,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     
     const verseElement = verseRefs.current[verseKey];
     if (verseElement) {
-      const topPos = verseElement.getBoundingClientRect().top + window.pageYOffset;
-      const offset = 150; // Offset for sticky header
-      window.scrollTo({
-          top: topPos - offset,
-          behavior: 'smooth'
-      });
+        handleAyahJump(verseKey);
     }
   };
 
@@ -270,13 +269,58 @@ export function QuranReader({ params }: QuranReaderProps) {
     }
   }
 
+  const handleScroll = useCallback(() => {
+    if (!selectedSurah || progress[selectedSurah.id] === 100) return;
+
+    let topVerseKey = null;
+    const offset = 160; 
+
+    for (const verseKey in verseRefs.current) {
+        const verseElement = verseRefs.current[verseKey];
+        if (verseElement) {
+            const rect = verseElement.getBoundingClientRect();
+            if (rect.top >= 0 && rect.top <= offset) {
+                topVerseKey = verseKey;
+                break;
+            }
+        }
+    }
+
+    if (topVerseKey) {
+        const verseNum = parseInt(topVerseKey.split(':')[1], 10);
+        const totalVerses = selectedSurah.total_verses;
+        const currentProgress = Math.round((verseNum / totalVerses) * 100);
+        if (progress[selectedSurah.id] !== currentProgress) {
+            updateProgress(selectedSurah.id, currentProgress);
+        }
+    }
+  }, [selectedSurah, progress, updateProgress]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+        window.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
+
+  const handleMarkAsComplete = (isComplete: boolean) => {
+    if (selectedSurah) {
+        updateProgress(selectedSurah.id, isComplete ? 100 : 0);
+         if(isComplete) {
+            toast({ title: `${selectedSurah.englishName} marked as complete!`});
+        } else {
+             toast({ title: `${selectedSurah.englishName} marked as incomplete.`});
+        }
+    }
+  };
 
   if (!isClient) {
     return (
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           <div className="bg-muted/50 p-4 border-b">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
@@ -296,13 +340,14 @@ export function QuranReader({ params }: QuranReaderProps) {
 
   const selectedSurahId = params.slug?.[0] || '1';
   const currentSurahNum = parseInt(selectedSurahId, 10);
+  const isSurahComplete = selectedSurah ? progress[selectedSurah.id] === 100 : false;
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
@@ -334,7 +379,7 @@ export function QuranReader({ params }: QuranReaderProps) {
               </Select>
             </div>
             <div>
-                <label className="text-sm font-medium mb-1 block opacity-0">Bookmarks</label>
+                <label className="text-sm font-medium mb-1 block opacity-0 md:invisible">Bookmarks</label>
                 <Button asChild variant="outline" className="w-full">
                     <Link href="/bookmarks">
                         <Bookmark className="mr-2"/>
@@ -342,12 +387,21 @@ export function QuranReader({ params }: QuranReaderProps) {
                     </Link>
                 </Button>
             </div>
+             <div className="flex items-center space-x-2 justify-self-start md:justify-self-center">
+                <Switch 
+                    id="mark-as-complete" 
+                    checked={isSurahComplete}
+                    onCheckedChange={handleMarkAsComplete}
+                    disabled={!selectedSurah}
+                />
+                <Label htmlFor="mark-as-complete" className="text-sm font-medium">Mark as Complete</Label>
+            </div>
           </div>
         </div>
         
         <audio ref={audioRef} onEnded={onAudioEnded} onError={onAudioError} className="hidden" />
 
-        <div className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
+        <div ref={readerContainerRef} className="p-6 md:p-8 lg:p-12 space-y-8 font-body text-lg">
           {isLoading ? (
              <div className="space-y-8">
               <h2 className="text-5xl font-arabic text-center font-bold text-primary mb-12 mt-8" dir="rtl">

@@ -3,6 +3,7 @@ import './globals.css';
 import { AppHeader } from '@/components/layout/app-header';
 import { Toaster } from '@/components/ui/toaster';
 import { BookmarkProvider } from '@/context/BookmarkContext';
+import { SurahProgressProvider } from '@/context/SurahProgressContext';
 
 export const metadata: Metadata = {
   title: 'NoorRecite',
@@ -26,11 +27,13 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <BookmarkProvider>
-          <div className="relative flex min-h-dvh flex-col">
-            <AppHeader />
-            <main className="flex-1 flex">{children}</main>
-          </div>
-          <Toaster />
+          <SurahProgressProvider>
+            <div className="relative flex min-h-dvh flex-col">
+              <AppHeader />
+              <main className="flex-1 flex">{children}</main>
+            </div>
+            <Toaster />
+          </SurahProgressProvider>
         </BookmarkProvider>
       </body>
     </html>
