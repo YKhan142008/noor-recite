@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { allSurahs, reciters, activeTranslation } from '@/lib/data';
 import quranPages from '@/lib/quran-pages.json';

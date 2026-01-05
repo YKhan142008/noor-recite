@@ -16,8 +16,8 @@ type ReadPageProps = {
   }
 }
 
-export default function ReadPage({ params }: ReadPageProps) {
-  const surahId = params.slug?.[0] || '1';
+export default function ReadPage({ params: { slug } }: ReadPageProps) {
+  const surahId = slug?.[0] || '1';
   const [currentPage, setCurrentPage] = useState(1);
   const currentSurah = allSurahs.find(s => s.id.toString() === surahId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -58,7 +58,7 @@ export default function ReadPage({ params }: ReadPageProps) {
 
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto px-0 sm:px-0 lg:px-0">
-            <QuranReader params={{ slug: params.slug || [] }} setCurrentPage={setCurrentPage} />
+            <QuranReader params={{ slug: slug || [] }} setCurrentPage={setCurrentPage} />
           </div>
         </div>
       </div>
