@@ -35,7 +35,7 @@ export default function BookmarksPage() {
                   </CardTitle>
                   <div className="flex items-center gap-2">
                      <Button asChild variant="ghost" size="icon">
-                        <Link href={`/read?surah=${surahId}&verse=${verseNum}`}>
+                        <Link href={`/read/${surahId}/${verseNum}`}>
                             <BookOpen className="text-muted-foreground" />
                         </Link>
                     </Button>

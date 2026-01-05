@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { allSurahs as surahs, reciters, activeTranslation } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,9 +22,17 @@ function verseKeyToEveryAyahId(verseKey: string) {
   return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
 }
 
-export function QuranReader() {
+type QuranReaderProps = {
+  params: {
+    slug: string[];
+  }
+}
+
+export function QuranReader({ params }: QuranReaderProps) {
   const [isClient, setIsClient] = useState(false);
-  const [selectedSurahId, setSelectedSurahId] = useState<string>('1');
+  const router = useRouter();
+
+  const [selectedSurahId, setSelectedSurahId] = useState<string>(params.slug?.[0] || '1');
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
@@ -40,18 +49,16 @@ export function QuranReader() {
 
   useEffect(() => {
     setIsClient(true);
-    const params = new URLSearchParams(window.location.search);
-    const surah = params.get('surah');
-    const verse = params.get('verse');
-    if (surah) {
-      setSelectedSurahId(surah);
-    }
-    if (surah && verse) {
-      setTimeout(() => {
-        handleAyahJump(`${surah}:${verse}`);
-      }, 1000); // Delay to allow verses to render
-    }
   }, []);
+
+  const handleAyahJump = (verseKey: string) => {
+    if (verseRefs.current[verseKey]) {
+      verseRefs.current[verseKey]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
 
   const fetchSurahContent = async (surahId: string) => {
     setIsLoading(true);
@@ -82,11 +89,11 @@ export function QuranReader() {
 
       setCurrentVerseKey(null);
       
-      const params = new URLSearchParams(window.location.search);
-      const verse = params.get('verse');
-      if(params.get('surah') === surahId && verse) {
-        // verses are now loaded, we can scroll
-        handleAyahJump(`${surahId}:${verse}`);
+      const targetVerseNum = params.slug?.[1];
+      if (targetVerseNum) {
+        const targetVerseKey = `${surahId}:${targetVerseNum}`;
+        // Timeout to allow the DOM to update with the new verses
+        setTimeout(() => handleAyahJump(targetVerseKey), 500);
       } else {
         window.scrollTo(0, 0);
       }
@@ -105,11 +112,16 @@ export function QuranReader() {
   };
 
   useEffect(() => {
-    if (selectedSurahId) {
-      fetchSurahContent(selectedSurahId);
+    const surahIdFromUrl = params.slug?.[0] || '1';
+    
+    // Only fetch if the surah is different from the currently loaded one
+    if (surahIdFromUrl !== selectedSurah?.id.toString()) {
+      setSelectedSurahId(surahIdFromUrl);
+      fetchSurahContent(surahIdFromUrl);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSurahId]);
+  }, [params.slug]);
+
 
   const stopPlayback = () => {
     if (audioRef.current) {
@@ -219,22 +231,17 @@ export function QuranReader() {
         setSelectedReciter(newReciter);
     }
   };
-
-  const handleAyahJump = (verseKey: string) => {
-    if (verseRefs.current[verseKey]) {
-      verseRefs.current[verseKey]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
+  
+  const handleSurahSelectChange = (surahId: string) => {
+    router.push(`/read/${surahId}`);
   };
   
-  const handleSurahChange = (direction: 'next' | 'previous') => {
+  const handleSurahNavigate = (direction: 'next' | 'previous') => {
     const currentSurahId = parseInt(selectedSurahId, 10);
     if (direction === 'next' && currentSurahId < 114) {
-      setSelectedSurahId((currentSurahId + 1).toString());
+      router.push(`/read/${currentSurahId + 1}`);
     } else if (direction === 'previous' && currentSurahId > 1) {
-      setSelectedSurahId((currentSurahId - 1).toString());
+      router.push(`/read/${currentSurahId - 1}`);
     }
   };
 
@@ -293,7 +300,7 @@ export function QuranReader() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
             <div>
               <label className="text-sm font-medium mb-1 block">Surah</label>
-              <Select value={selectedSurahId} onValueChange={setSelectedSurahId}>
+              <Select value={selectedSurahId} onValueChange={handleSurahSelectChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Surah" />
                 </SelectTrigger>
@@ -428,7 +435,7 @@ export function QuranReader() {
               </div>
               <div className="flex justify-between items-center mt-12 pt-8 border-t">
                   <Button 
-                    onClick={() => handleSurahChange('previous')} 
+                    onClick={() => handleSurahNavigate('previous')} 
                     disabled={currentSurahNum <= 1}
                     variant="outline"
                   >
@@ -436,7 +443,7 @@ export function QuranReader() {
                     Previous Surah
                   </Button>
                   <Button 
-                    onClick={() => handleSurahChange('next')} 
+                    onClick={() => handleSurahNavigate('next')} 
                     disabled={currentSurahNum >= 114}
                     variant="outline"
                   >
@@ -455,5 +462,3 @@ export function QuranReader() {
     </Card>
   );
 }
-
-    
