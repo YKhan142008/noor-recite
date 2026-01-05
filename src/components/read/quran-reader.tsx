@@ -54,8 +54,8 @@ export function QuranReader({ params }: QuranReaderProps) {
   const handleAyahJump = (verseKey: string) => {
     if (verseRefs.current[verseKey]) {
       verseRefs.current[verseKey]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
+        behavior: 'auto',
+        block: 'start',
       });
     }
   };
@@ -93,7 +93,7 @@ export function QuranReader({ params }: QuranReaderProps) {
       if (targetVerseNum) {
         const targetVerseKey = `${surahId}:${targetVerseNum}`;
         // Timeout to allow the DOM to update with the new verses
-        setTimeout(() => handleAyahJump(targetVerseKey), 500);
+        setTimeout(() => handleAyahJump(targetVerseKey), 100);
       } else {
         window.scrollTo(0, 0);
       }
@@ -114,11 +114,10 @@ export function QuranReader({ params }: QuranReaderProps) {
   useEffect(() => {
     const surahIdFromUrl = params.slug?.[0] || '1';
     
-    // Only fetch if the surah is different from the currently loaded one
-    if (surahIdFromUrl !== selectedSurah?.id.toString()) {
+    if (surahIdFromUrl !== selectedSurahId) {
       setSelectedSurahId(surahIdFromUrl);
-      fetchSurahContent(surahIdFromUrl);
     }
+    fetchSurahContent(surahIdFromUrl);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.slug]);
 
@@ -233,6 +232,7 @@ export function QuranReader({ params }: QuranReaderProps) {
   };
   
   const handleSurahSelectChange = (surahId: string) => {
+    setSelectedSurahId(surahId);
     router.push(`/read/${surahId}`);
   };
   
