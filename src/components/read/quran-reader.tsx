@@ -281,7 +281,6 @@ export function QuranReader({ params }: QuranReaderProps) {
   const handleScroll = useCallback(() => {
     if (!selectedSurah) return;
 
-    // Check if scrolled to the bottom of the page
     const isAtBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 5;
     if (isAtBottom) {
       if (progress[selectedSurah.id] !== 100) {
@@ -308,15 +307,22 @@ export function QuranReader({ params }: QuranReaderProps) {
     }
 
     if (topVerseKey) {
-        const verseNum = parseInt(topVerseKey.split(':')[1], 10);
+        const [surahNumStr, verseNumStr] = topVerseKey.split(':');
+        const verseNum = parseInt(verseNumStr, 10);
+        const surahNum = parseInt(surahNumStr, 10);
+
         const totalVerses = selectedSurah.total_verses;
         const currentProgress = Math.round((verseNum / totalVerses) * 100);
         if (progress[selectedSurah.id] !== currentProgress) {
             updateProgress(selectedSurah.id, currentProgress);
         }
-        setCurrentPage(getPageForVerse(selectedSurah.id, verseNum));
+        
+        const newPage = getPageForVerse(surahNum, verseNum);
+        if (newPage !== currentPage) {
+            setCurrentPage(newPage);
+        }
     }
-  }, [selectedSurah, progress, updateProgress]);
+  }, [selectedSurah, progress, updateProgress, currentPage]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
@@ -536,5 +542,3 @@ export function QuranReader({ params }: QuranReaderProps) {
     </Card>
   );
 }
-
-    
