@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Verse, Surah, Reciter, Bookmark as BookmarkType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
+import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight, CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { VerseTranslation } from './verse-translation';
@@ -320,6 +320,13 @@ export function QuranReader({ params }: QuranReaderProps) {
     }
   };
 
+  const handleResetProgress = () => {
+    if (selectedSurah) {
+        updateProgress(selectedSurah.id, 0);
+        toast({ title: `Progress for ${selectedSurah.englishName} has been reset.`});
+    }
+  }
+
   if (!isClient) {
     return (
       <Card className="overflow-hidden">
@@ -352,7 +359,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
@@ -382,6 +389,13 @@ export function QuranReader({ params }: QuranReaderProps) {
                     ))}
                   </SelectContent>
               </Select>
+            </div>
+            <div>
+                <label className="text-sm font-medium mb-1 block">Action</label>
+                <Button variant="outline" className="w-full" onClick={handleResetProgress} disabled={!selectedSurah}>
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    Read Again
+                </Button>
             </div>
           </div>
         </div>
@@ -506,3 +520,5 @@ export function QuranReader({ params }: QuranReaderProps) {
     </Card>
   );
 }
+
+    
