@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { allSurahs, reciters, activeTranslation } from '@/lib/data';
+import quranPages from '@/lib/quran-pages.json';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Verse, Surah, Reciter, Bookmark as BookmarkType } from '@/lib/types';
@@ -22,6 +23,11 @@ function verseKeyToEveryAyahId(verseKey: string) {
   return `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
 }
 
+function getPageForVerse(surahId: number, verseNum: number): number {
+    const pageInfo = quranPages.find(p => p.surah === surahId && verseNum >= p.from && verseNum <= p.to);
+    return pageInfo ? pageInfo.page : 1;
+}
+
 type QuranReaderProps = {
   params: {
     slug: string[];
@@ -33,6 +39,7 @@ export function QuranReader({ params }: QuranReaderProps) {
   const router = useRouter();
 
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
   
@@ -84,24 +91,27 @@ export function QuranReader({ params }: QuranReaderProps) {
       const surahInfo = allSurahs.find(s => s.id.toString() === surahId);
       if (!surahInfo) throw new Error('Surah not found in metadata');
       
-      setSelectedSurah({
+      const newSelectedSurah = {
         id: surahInfo.id,
         name: surahInfo.name,
         englishName: surahInfo.englishName,
         verses: data.verses,
         total_verses: surahInfo.total_verses,
-      });
+      };
+      setSelectedSurah(newSelectedSurah);
 
       setCurrentVerseKey(null);
       
-      const targetVerseNum = params.slug?.[1];
-      if (targetVerseNum) {
+      const targetVerseNumStr = params.slug?.[1];
+      if (targetVerseNumStr) {
+        const targetVerseNum = parseInt(targetVerseNumStr, 10);
         const targetVerseKey = `${surahId}:${targetVerseNum}`;
+        setCurrentPage(getPageForVerse(parseInt(surahId, 10), targetVerseNum));
         setTimeout(() => handleAyahJump(targetVerseKey), 100);
       } else {
+        setCurrentPage(getPageForVerse(newSelectedSurah.id, 1));
         window.scrollTo(0, 0);
       }
-
 
     } catch (error) {
       toast({
@@ -269,14 +279,17 @@ export function QuranReader({ params }: QuranReaderProps) {
   }
 
   const handleScroll = useCallback(() => {
-    if (!selectedSurah || progress[selectedSurah.id] === 100) return;
-    
+    if (!selectedSurah) return;
+
     // Check if scrolled to the bottom of the page
     const isAtBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 5;
     if (isAtBottom) {
       if (progress[selectedSurah.id] !== 100) {
         updateProgress(selectedSurah.id, 100);
       }
+      const lastVerse = selectedSurah.verses[selectedSurah.verses.length - 1];
+      const lastVerseNum = parseInt(lastVerse.verse_key.split(':')[1], 10);
+      setCurrentPage(getPageForVerse(selectedSurah.id, lastVerseNum));
       return;
     }
 
@@ -301,6 +314,7 @@ export function QuranReader({ params }: QuranReaderProps) {
         if (progress[selectedSurah.id] !== currentProgress) {
             updateProgress(selectedSurah.id, currentProgress);
         }
+        setCurrentPage(getPageForVerse(selectedSurah.id, verseNum));
     }
   }, [selectedSurah, progress, updateProgress]);
 
@@ -359,7 +373,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
@@ -396,6 +410,10 @@ export function QuranReader({ params }: QuranReaderProps) {
                     <RefreshCcw className="mr-2 h-4 w-4" />
                     Read Again
                 </Button>
+            </div>
+            <div className="text-right">
+                <label className="text-sm font-medium mb-1 block">Page</label>
+                <span className="text-lg font-bold h-10 flex items-center justify-end">{currentPage}</span>
             </div>
           </div>
         </div>
@@ -518,7 +536,5 @@ export function QuranReader({ params }: QuranReaderProps) {
     </Card>
   );
 }
-
-    
 
     
