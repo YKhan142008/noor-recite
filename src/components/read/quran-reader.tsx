@@ -460,9 +460,12 @@ export function QuranReader({ params, setCurrentPage }: QuranReaderProps) {
                        <p className="text-3xl lg:text-4xl leading-relaxed text-right font-arabic" dir="rtl">
                         {verse.arabic}
                         {verse.verse_key && (
-                          <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
-                            {Number(verse.verse_key.split(':')[1]).toLocaleString('ar-SA')}
-                          </span>
+                          <>
+                            <span className="text-xl mx-2 text-accent font-sans p-1 rounded-full border-2 border-accent w-8 h-8 inline-flex items-center justify-center">
+                              {Number(verse.verse_key.split(':')[1]).toLocaleString('ar-SA')}
+                            </span>
+                            <span dangerouslySetInnerHTML={{ __html: '&lrm;' }} />
+                          </>
                         )}
                       </p>
                       <VerseTranslation 
