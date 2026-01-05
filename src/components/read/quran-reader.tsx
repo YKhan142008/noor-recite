@@ -302,9 +302,7 @@ export function QuranReader({ params }: QuranReaderProps) {
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="bg-muted/50 p-4 border-b sticky top-[56px] z-40">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-            {/* The Surah Select is now handled by the sidebar */}
-            <div/>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
              <div>
               <label className="text-sm font-medium mb-1 block">Reciter</label>
               <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
