@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/co
 
 type ReadPageProps = {
   params: {
-    slug: string[];
+    slug?: string[];
   }
 }
 
