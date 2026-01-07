@@ -2,11 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Bookmark } from '@/lib/types';
+import { useSurahProgress } from './SurahProgressContext';
 
 interface BookmarkContextType {
   bookmarks: Bookmark[];
   addBookmark: (bookmark: Bookmark) => void;
   removeBookmark: (verseKey: string) => void;
+  jumpToBookmark: (bookmark: Bookmark) => void;
 }
 
 const BookmarkContext = createContext<BookmarkContextType | undefined>(undefined);
@@ -14,6 +16,7 @@ const BookmarkContext = createContext<BookmarkContextType | undefined>(undefined
 export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { updateProgress } = useSurahProgress();
 
   useEffect(() => {
     try {
@@ -44,9 +47,15 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const removeBookmark = (verseKey: string) => {
     setBookmarks((prev) => prev.filter((b) => b.verse_key !== verseKey));
   };
+  
+  const jumpToBookmark = (bookmark: Bookmark) => {
+    if (bookmark.progress !== undefined) {
+      updateProgress(bookmark.surahId, bookmark.progress);
+    }
+  };
 
   return (
-    <BookmarkContext.Provider value={{ bookmarks, addBookmark, removeBookmark }}>
+    <BookmarkContext.Provider value={{ bookmarks, addBookmark, removeBookmark, jumpToBookmark }}>
       {children}
     </BookmarkContext.Provider>
   );

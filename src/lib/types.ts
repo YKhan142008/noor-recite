@@ -52,5 +52,5 @@ export interface Bookmark {
   surahName: string;
   verse_key: string;
   text: string;
+  progress?: number;
 }
-

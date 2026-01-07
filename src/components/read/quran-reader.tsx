@@ -265,11 +265,13 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
       removeBookmark(verse.verse_key);
       toast({ title: 'Bookmark removed' });
     } else {
+      const surahProgress = progress[selectedSurah.id] || 0;
       const bookmark: BookmarkType = {
         surahId: selectedSurah.id,
         surahName: selectedSurah.name,
         verse_key: verse.verse_key,
         text: verse.arabic,
+        progress: surahProgress,
       };
       addBookmark(bookmark);
       toast({ title: 'Bookmark added' });

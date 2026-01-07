@@ -7,7 +7,7 @@ import { Trash2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BookmarksPage() {
-  const { bookmarks, removeBookmark } = useBookmarks();
+  const { bookmarks, removeBookmark, jumpToBookmark } = useBookmarks();
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -34,7 +34,7 @@ export default function BookmarksPage() {
                     {bookmark.surahName} ({bookmark.verse_key})
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                     <Button asChild variant="ghost" size="icon">
+                     <Button asChild variant="ghost" size="icon" onClick={() => jumpToBookmark(bookmark)}>
                         <Link href={`/read/${surahId}/${verseNum}`}>
                             <BookOpen className="text-muted-foreground" />
                         </Link>
@@ -56,6 +56,11 @@ export default function BookmarksPage() {
                         {Number(verseNum).toLocaleString('ar-SA')}
                     </span>
                   </p>
+                   {bookmark.progress !== undefined && (
+                    <div className="mt-4 text-xs text-muted-foreground">
+                      Saved at {bookmark.progress}% progress
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
