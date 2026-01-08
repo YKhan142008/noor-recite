@@ -1,5 +1,5 @@
 
-import type { Surah, Reciter, Stat, ReadingActivity, Achievement, Translation } from './types';
+import type { Surah, Reciter, Stat, ReadingActivity, Translation, Verse, Bookmark } from './types';
 
 export const allSurahs: Omit<Surah, 'verses'>[] = [
   { id: 1, name: 'الفاتحة', englishName: 'Al-Fatiha', total_verses: 7 },
@@ -163,15 +163,19 @@ export const readingActivity: ReadingActivity[] = [
   { day: 'Sun', minutes: 12 },
 ];
 
-export const achievements: Achievement[] = [
-    { id: '1', title: 'First Steps', description: 'Read your first Surah.', unlocked: true, imageId: 'achievement-first-steps' },
-    { id: '2', title: 'Devotion', description: 'Maintain a 7-day reading streak.', unlocked: true, imageId: 'achievement-devotion' },
-    { id: '3', title: 'The Cow', description: 'Complete Surah Al-Baqarah.', unlocked: false, imageId: 'achievement-scholar' },
-    { id: '4', title: 'Night Reader', description: 'Read between Fajr and Sunrise.', unlocked: false, imageId: 'achievement-night-reader' },
-];
-
 export const searchResults = [
   { surah: 'Al-Baqarah', verse: 255, text: 'Allah - there is no deity except Him, the Ever-Living, the Sustainer of [all] existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth...' },
   { surah: 'Al-Imran', verse: 133, text: 'And hasten to forgiveness from your Lord and a garden as wide as the heavens and earth, prepared for the righteous' },
   { surah: 'An-Nisa', verse: 29, text: 'O you who have believed, do not consume one another\'s wealth unjustly but only [in lawful] business by mutual consent. And do not kill yourselves [or one another]. Indeed, Allah is to you ever Merciful.' },
 ];
+
+export const dailyAyah: Omit<Verse, 'id' | 'translation'> = {
+  verse_key: '39:53',
+  arabic: '۞ قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنْفُسِهِمْ لَا تَقْنَطُوا مِنْ رَحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا ۚ إِنَّهُ هُوَ الْغَفُورُ الرَّحِيمُ',
+  translation: 'Say, "O My servants who have transgressed against themselves [by sinning], do not despair of the mercy of Allah. Indeed, Allah forgives all sins. Indeed, it is He who is the Forgiving, the Merciful."',
+};
+
+export const dailyHadith = {
+  text: 'Narrated `Uthman bin `Affan: The Prophet (ﷺ) said, "The most superior among you (Muslims) are those who learn the Qur\'an and teach it."',
+  source: 'Sahih al-Bukhari 5028'
+};

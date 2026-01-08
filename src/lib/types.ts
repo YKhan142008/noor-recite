@@ -32,14 +32,6 @@ export interface ReadingActivity {
   minutes: number;
 }
 
-export interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  unlocked: boolean;
-  imageId: string;
-}
-
 export interface Translation {
     id: string; 
     language: string;

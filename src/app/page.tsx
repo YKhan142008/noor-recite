@@ -1,8 +1,10 @@
-import { BarChart3, Medal, Clock, BookOpen } from 'lucide-react';
+
+import { BarChart3, Medal, Clock, BookOpen, Star, BookHeart } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { ReadingChart } from '@/components/dashboard/reading-chart';
-import { AchievementsGrid } from '@/components/dashboard/achievements-grid';
-import { readingStats, readingActivity, achievements } from '@/lib/data';
+import { DailyAyah } from '@/components/dashboard/daily-ayah';
+import { DailyHadith } from '@/components/dashboard/daily-hadith';
+import { readingStats, readingActivity } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function DashboardPage() {
@@ -29,17 +31,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2">
-              <Medal className="text-accent" />
-              Achievements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AchievementsGrid achievements={achievements} />
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2 space-y-6">
+          <DailyAyah />
+          <DailyHadith />
+        </div>
       </div>
     </div>
   );
