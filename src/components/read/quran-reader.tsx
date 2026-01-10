@@ -7,7 +7,7 @@ import { allSurahs, reciters, activeTranslation } from '@/lib/data';
 import quranPages from '@/lib/quran-pages.json';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Verse, Surah, Reciter, Bookmark as BookmarkType } from '@/lib/types';
+import type { Verse, Surah, Bookmark as BookmarkType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight, CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
@@ -39,7 +39,7 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
 
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
   
-  const [selectedReciter, setSelectedReciter] = useState<Reciter>(reciters[0]);
+  const [selectedReciterId, setSelectedReciterId] = useState<string>(reciters[0].id);
   
   const [isLoading, setIsLoading] = useState(true);
   const [currentVerseKey, setCurrentVerseKey] = useState<string | null>(null);
@@ -52,6 +52,7 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
 
   const { bookmarks, addBookmark, removeBookmark } = useBookmarks();
   const { progress, updateProgress } = useSurahProgress();
+  const selectedReciter = reciters.find(r => r.id === selectedReciterId) || reciters[0];
 
   useEffect(() => {
     setIsClient(true);
@@ -238,7 +239,7 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
     const newReciter = reciters.find(r => r.id === reciterId);
     if (newReciter) {
         stopPlayback();
-        setSelectedReciter(newReciter);
+        setSelectedReciterId(newReciter.id);
     }
   };
   
@@ -277,6 +278,23 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
       toast({ title: 'Bookmark added' });
     }
   }
+
+  const handleCopy = (verse: Verse) => {
+    const textToCopy = `${verse.arabic}\n\n${verse.translation}\n- Surah ${selectedSurah?.englishName} (${verse.verse_key})`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      toast({
+        title: "Verse Copied",
+        description: `Verse ${verse.verse_key} and its translation have been copied to your clipboard.`,
+      });
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Could not copy the verse to your clipboard.",
+      });
+    });
+  };
 
   const handleScroll = useCallback(() => {
     if (!selectedSurah) return;
@@ -393,7 +411,7 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
                 <div className='flex flex-col md:flex-row gap-2 md:items-center md:justify-end'>
                     <div className='flex-1'>
                         <label className="text-sm font-medium mb-1 block">Reciter</label>
-                        <Select value={selectedReciter.id} onValueChange={handleReciterChange}>
+                        <Select value={selectedReciterId} onValueChange={handleReciterChange}>
                             <SelectTrigger>
                             <SelectValue placeholder="Select Reciter" />
                             </SelectTrigger>
@@ -449,7 +467,7 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleVerseClick(verse)}>
                           {currentVerseKey === verse.verse_key && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => verse.translation && navigator.clipboard.writeText(verse.arabic + '\n' + verse.translation)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(verse)}>
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleBookmarkToggle(verse)}>
@@ -518,3 +536,5 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
     </Card>
   );
 }
+
+    
