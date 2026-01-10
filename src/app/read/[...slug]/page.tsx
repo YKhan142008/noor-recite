@@ -16,7 +16,8 @@ type ReadPageProps = {
   }
 }
 
-export default function ReadPage({ params: { slug = [] } }: ReadPageProps) {
+export default function ReadPage({ params }: ReadPageProps) {
+  const slug = params.slug || [];
   const surahId = slug[0] || '1';
   const [currentPage, setCurrentPage] = useState(1);
   const currentSurah = allSurahs.find(s => s.id.toString() === surahId);
