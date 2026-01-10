@@ -46,3 +46,10 @@ export interface Bookmark {
   text: string;
   progress?: number;
 }
+
+export interface Tafsir {
+  id: number;
+  surah: number;
+  verse: number;
+  text: string;
+}

@@ -10,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Verse, Surah, Bookmark as BookmarkType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight, CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
+import { Play, Pause, Copy, Bookmark, ArrowLeft, ArrowRight, CheckCircle, XCircle, RefreshCcw, BookText } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { VerseTranslation } from './verse-translation';
 import { useBookmarks } from '@/context/BookmarkContext';
 import { useSurahProgress } from '@/context/SurahProgressContext';
+import { TafsirDialog } from './tafsir-dialog';
 
 function verseKeyToEveryAyahId(verseKey: string) {
   if (!verseKey) return '';
@@ -45,6 +46,8 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
   const [currentVerseKey, setCurrentVerseKey] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   
+  const [tafsirVerseKey, setTafsirVerseKey] = useState<string | null>(null);
+
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement>(null);
   const verseRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
@@ -280,7 +283,7 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
   }
 
   const handleCopy = (verse: Verse) => {
-    const textToCopy = `${verse.arabic}\n\n${verse.translation}\n- Surah ${selectedSurah?.englishName} (${verse.verse_key})`;
+    const textToCopy = `${verse.arabic}\n\n"${verse.translation}"\n- Surah ${selectedSurah?.englishName} (${verse.verse_key})`;
     navigator.clipboard.writeText(textToCopy).then(() => {
       toast({
         title: "Verse Copied",
@@ -384,6 +387,8 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
   const showBismillah = selectedSurah && selectedSurah.id !== 1 && selectedSurah.id !== 9;
 
   return (
+    <>
+    <TafsirDialog verseKey={tafsirVerseKey} onOpenChange={() => setTafsirVerseKey(null)} />
     <Card className="overflow-hidden shadow-none border-none rounded-none">
       <CardContent className="p-0">
         <audio ref={audioRef} onEnded={onAudioEnded} onError={onAudioError} className="hidden" />
@@ -473,6 +478,9 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleBookmarkToggle(verse)}>
                           <Bookmark className={cn("h-4 w-4", isBookmarked(verse.verse_key) ? 'fill-accent text-accent' : '')} />
                         </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setTafsirVerseKey(verse.verse_key)}>
+                            <BookText className="h-4 w-4" />
+                        </Button>
                     </div>
                      <div className="space-y-4">
                        <p className="text-3xl lg:text-4xl leading-relaxed text-right font-arabic" dir="rtl">
@@ -534,7 +542,6 @@ export function QuranReader({ slug, setCurrentPage }: QuranReaderProps) {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
-
-    
