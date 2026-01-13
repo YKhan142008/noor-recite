@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         { status: audioResponse.status, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
+
     if (!audioResponse.body) {
       return new NextResponse(JSON.stringify({ message: 'Audio source returned no content.' }), {
         status: 500,
@@ -40,17 +40,17 @@ export async function GET(request: NextRequest) {
 
     // Create a streaming response
     const body = audioResponse.body;
-    
+
     // Copy relevant headers from the original response to the new response
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mpeg');
     responseHeaders.set('Accept-Ranges', audioResponse.headers.get('Accept-Ranges') || 'bytes');
-    
+
     const contentLength = audioResponse.headers.get('Content-Length');
     if (contentLength) {
       responseHeaders.set('Content-Length', contentLength);
     }
-    
+
     const contentRange = audioResponse.headers.get('Content-Range');
     if (contentRange) {
       responseHeaders.set('Content-Range', contentRange);
