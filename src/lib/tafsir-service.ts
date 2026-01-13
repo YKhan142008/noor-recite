@@ -1,4 +1,6 @@
-import { db } from './firebase';
+"use client";
+
+import { db } from './firebase.client';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 
 export interface TafsirData {

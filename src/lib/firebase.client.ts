@@ -1,3 +1,6 @@
+// lib/firebase.client.ts
+"use client";
+
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -11,9 +14,24 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const auth = getAuth(app);
+let app;
+let db;
+let auth;
+
+const hasKeys =
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+  !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('placeholder');
+
+if (hasKeys) {
+  try {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    db = getFirestore(app);
+    auth = getAuth(app);
+  } catch (e) {
+    console.error('Firebase initialization failed:', e);
+  }
+} else {
+  console.warn('⚠️ Firebase API Keys missing. Auth disabled.');
+}
 
 export { app, db, auth };

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Bookmark } from '@/lib/types';
 import { useSurahProgress } from './SurahProgressContext';
 import { useAuth } from './AuthContext';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase.client';
 import { collection, doc, setDoc, deleteDoc, getDocs, query, orderBy } from 'firebase/firestore';
 
 interface BookmarkContextType {
