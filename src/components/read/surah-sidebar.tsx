@@ -14,9 +14,10 @@ type SurahSidebarProps = {
   currentSurahId: string;
   isSheet?: boolean;
   onSelect?: () => void;
+  isCollapsed?: boolean;
 };
 
-export function SurahSidebar({ currentSurahId, isSheet = false, onSelect }: SurahSidebarProps) {
+export function SurahSidebar({ currentSurahId, isSheet = false, onSelect, isCollapsed = false }: SurahSidebarProps) {
   const [search, setSearch] = useState('');
   const router = useRouter();
   const { progress } = useSurahProgress();
@@ -43,9 +44,9 @@ export function SurahSidebar({ currentSurahId, isSheet = false, onSelect }: Sura
         className="w-full justify-start rounded-none px-4 py-6 text-left h-auto relative"
         onClick={() => handleSurahSelect(surah.id)}
       >
-        <div 
+        <div
           className="absolute inset-y-0 left-0 bg-primary/20"
-          style={{ width: `${surahProgress}%`}}
+          style={{ width: `${surahProgress}%` }}
         />
         <div className="flex items-center w-full relative">
           <span className="text-lg font-bold w-12">{surah.id}</span>

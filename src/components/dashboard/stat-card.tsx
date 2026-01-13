@@ -7,7 +7,7 @@ type StatCardProps = {
   title: string;
   value: string;
   change: string;
-  changeType: 'increase' | 'decrease';
+  changeType: 'increase' | 'decrease' | 'neutral';
 };
 
 export function StatCard({ icon, title, value, change, changeType }: StatCardProps) {
@@ -22,10 +22,11 @@ export function StatCard({ icon, title, value, change, changeType }: StatCardPro
         <p
           className={cn(
             'text-xs text-muted-foreground',
-            changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+            changeType === 'increase' ? 'text-green-600' :
+              changeType === 'decrease' ? 'text-red-600' : 'text-muted-foreground'
           )}
         >
-          {change} from yesterday
+          {change}
         </p>
       </CardContent>
     </Card>

@@ -12,6 +12,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Tafsir } from '@/lib/types';
+import { getTafsirByVerse } from '@/lib/tafsir-service';
 
 type TafsirDialogProps = {
   verseKey: string | null;
@@ -30,16 +31,18 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
       setError(null);
       setTafsir(null);
 
-      fetch(`/api/tafsir?surah=${surah}&verse=${verse}`)
-        .then(async (res) => {
-          if (!res.ok) {
-            const errorData = await res.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Failed to fetch tafsir');
+      getTafsirByVerse(verseKey)
+        .then((data) => {
+          if (data) {
+            // Adapt TafsirData to compatible format if needed or update Types
+            setTafsir({
+              surah: data.surah,
+              verse: data.ayah,
+              text: data.text
+            } as any);
+          } else {
+            setError('Tafsir not found for this verse.');
           }
-          return res.json();
-        })
-        .then((data: Tafsir) => {
-          setTafsir(data);
         })
         .catch((err) => {
           setError(err.message || 'An unknown error occurred.');
@@ -76,9 +79,10 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
             )}
             {error && <p className="text-destructive">{error}</p>}
             {tafsir && (
-              <p className="text-base leading-relaxed whitespace-pre-wrap font-body">
-                {tafsir.text}
-              </p>
+              <div
+                className="text-base leading-relaxed font-body [&>p]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-2"
+                dangerouslySetInnerHTML={{ __html: tafsir.text }}
+              />
             )}
           </ScrollArea>
         </div>

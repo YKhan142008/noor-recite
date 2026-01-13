@@ -119,16 +119,16 @@ export const allSurahs: Omit<Surah, 'verses'>[] = [
 ];
 
 export const reciters: Reciter[] = [
-    { id: '7', name: 'Mishary Rashid Alafasy', audio_url_path: 'Alafasy/mp3' },
-    { id: '4', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Sudais/mp3' },
+  { id: '7', name: 'Mishary Rashid Alafasy', audio_url_path: 'Alafasy/mp3' },
+  { id: '4', name: 'Abdur-Rahman as-Sudais', audio_url_path: 'Sudais/mp3' },
 ];
 
 // This is now the single source of truth for the available translation.
-export const activeTranslation: Translation = { 
-    id: '85', 
-    language: 'english', 
-    name: 'Hilali & Khan', 
-    author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan'
+export const activeTranslation: Translation = {
+  id: '85',
+  language: 'english',
+  name: 'Hilali & Khan',
+  author_name: 'Dr. T. U. al-Hilali and Dr. M. Khan'
 };
 
 
@@ -136,19 +136,19 @@ export const readingStats: { [key: string]: Stat } = {
   versesRead: {
     title: 'Verses Read Today',
     value: '7',
-    change: '+3',
+    change: '+3 from yesterday',
     changeType: 'increase',
   },
   timeSpent: {
     title: 'Time Spent',
     value: '12m 45s',
-    change: '+2m',
+    change: '+2m from yesterday',
     changeType: 'increase',
   },
   readingStreak: {
     title: 'Reading Streak',
     value: '5 Days',
-    change: '-1',
+    change: '-1 from yesterday',
     changeType: 'decrease',
   },
 };

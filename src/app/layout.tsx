@@ -4,6 +4,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { Toaster } from '@/components/ui/toaster';
 import { BookmarkProvider } from '@/context/BookmarkContext';
 import { SurahProgressProvider } from '@/context/SurahProgressContext';
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
   title: 'NoorRecite',
@@ -28,11 +29,13 @@ export default function RootLayout({
       <body className="font-body antialiased" suppressHydrationWarning>
         <SurahProgressProvider>
           <BookmarkProvider>
-            <div className="relative flex min-h-dvh flex-col">
-              <AppHeader />
-              <main className="flex-1 flex">{children}</main>
-            </div>
-            <Toaster />
+            <AuthProvider>
+              <div className="relative flex min-h-dvh flex-col">
+                <AppHeader />
+                <main className="flex-1 flex">{children}</main>
+              </div>
+              <Toaster />
+            </AuthProvider>
           </BookmarkProvider>
         </SurahProgressProvider>
       </body>
