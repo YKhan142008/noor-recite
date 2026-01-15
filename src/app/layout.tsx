@@ -28,8 +28,8 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <div className="relative flex min-h-dvh flex-col">
-          <AppHeader />
           <ClientProviders>
+            <AppHeader />
             <main className="flex-1 flex">{children}</main>
           </ClientProviders>
         </div>
