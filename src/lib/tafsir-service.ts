@@ -27,12 +27,46 @@ export async function getTafsirByVerse(verseKey: string): Promise<TafsirData | n
   }
 
   try {
+    if (!db) {
+      console.warn('Firestore not initialized');
+      return null;
+    }
+    // Try direct document fetch first (most efficient)
     const docRef = doc(db, 'tafsir', verseKey);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       const data = docSnap.data() as TafsirData;
+      // Cache this specific verse key
       tafsirCache.set(verseKey, data);
+
+      // Also cache all other ayahs in this group if they exist
+      if (data.ayah_keys && Array.isArray(data.ayah_keys)) {
+        data.ayah_keys.forEach(key => tafsirCache.set(key, data));
+      }
+
+      return data;
+    }
+
+    // If not found directly, it might be part of a group but stored under a different key
+    // Perform a query for the grouping
+    const q = query(
+      collection(db, 'tafsir'),
+      where('ayah_keys', 'array-contains', verseKey)
+    );
+
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      const data = doc.data() as TafsirData;
+
+      // Cache all keys in this group to avoid future queries
+      if (data.ayah_keys && Array.isArray(data.ayah_keys)) {
+        data.ayah_keys.forEach(key => tafsirCache.set(key, data));
+      } else {
+        tafsirCache.set(verseKey, data);
+      }
+
       return data;
     }
 
@@ -49,6 +83,10 @@ export async function getTafsirByVerse(verseKey: string): Promise<TafsirData | n
  */
 export async function getTafsirBySurah(surahNumber: number): Promise<TafsirData[]> {
   try {
+    if (!db) {
+      console.warn('Firestore not initialized');
+      return [];
+    }
     const q = query(
       collection(db, 'tafsir'),
       where('surah', '==', surahNumber)
@@ -60,8 +98,16 @@ export async function getTafsirBySurah(surahNumber: number): Promise<TafsirData[
     querySnapshot.forEach((doc) => {
       const data = doc.data() as TafsirData;
       tafsirs.push(data);
-      // Cache each entry
+
+      // Cache the primary verse key
       tafsirCache.set(data.verse_key, data);
+
+      // Also cache each ayah key in the group if it's a multi-ayah tafsir
+      if (data.ayah_keys && Array.isArray(data.ayah_keys)) {
+        data.ayah_keys.forEach(key => {
+          tafsirCache.set(key, data);
+        });
+      }
     });
 
     return tafsirs.sort((a, b) => a.ayah - b.ayah);

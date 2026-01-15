@@ -4,7 +4,8 @@ import { activeTranslation } from '@/lib/data';
 
 async function fetchSurahData(surahId: string, translationId: string) {
   // This endpoint can fetch the verse and its translation in a single call.
-  // We specify which translation we want and set a high per_page limit.
+  // We specify which translation we want and set a per_page limit.
+  // Surah 2 (Al-Baqarah) has 286 ayahs, so 300 is sufficient for any single Surah.
   const url = `https://api.quran.com/api/v4/verses/by_chapter/${surahId}?language=en&words=false&translations=${translationId}&fields=text_uthmani&per_page=300`;
 
   try {
@@ -25,7 +26,7 @@ async function fetchSurahData(surahId: string, translationId: string) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const surahId = searchParams.get('surah');
-  
+
   // The translationId is now fixed to the one defined in lib/data.ts
   const translationId = activeTranslation.id;
 
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
 
   try {
     const versesFromApi = await fetchSurahData(surahId, translationId);
-    
+
     // The API returns the translation inside a `translations` array on each verse object.
     // We need to map this to our simplified `Verse` type.
     const combinedVerses = versesFromApi.map((verse: any) => ({
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
       verse_key: verse.verse_key,
       arabic: verse.text_uthmani,
       // The translation is in the first element of the translations array
-      translation: verse.translations[0]?.text.replace(/<[^>]*>/g, '') || '' 
+      translation: verse.translations[0]?.text.replace(/<[^>]*>/g, '') || ''
     }));
 
     return NextResponse.json({

@@ -41,11 +41,12 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
               text: data.text
             } as any);
           } else {
-            setError('Tafsir not found for this verse.');
+            setError('could not find tafsir');
           }
         })
         .catch((err) => {
-          setError(err.message || 'An unknown error occurred.');
+          setError('could not find tafsir');
+          console.error('Tafsir fetch error:', err);
         })
         .finally(() => {
           setIsLoading(false);
