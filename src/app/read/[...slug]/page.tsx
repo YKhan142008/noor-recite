@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { QuranReader } from "@/components/read/quran-reader";
 import { SurahSidebar } from "@/components/read/surah-sidebar";
 import { allSurahs } from '@/lib/data';
@@ -10,13 +10,14 @@ import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 type ReadPageProps = {
-  params: {
+  params: Promise<{
     slug?: string[];
-  };
+  }>;
 };
 
 export default function ReadPage({ params }: ReadPageProps) {
-  const slug = params.slug || [];
+  const unwrappedParams = use(params);
+  const slug = unwrappedParams.slug || [];
   const surahId = slug[0] || '1';
   const [currentPage, setCurrentPage] = useState(1);
   const currentSurah = allSurahs.find(s => s.id.toString() === surahId);

@@ -32,7 +32,7 @@ export async function getTafsirByVerse(verseKey: string): Promise<TafsirData | n
       return null;
     }
     // Try direct document fetch first (most efficient)
-    const docRef = doc(db, 'tafsir', verseKey);
+    const docRef = doc(db!, 'tafsir', verseKey);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -51,7 +51,7 @@ export async function getTafsirByVerse(verseKey: string): Promise<TafsirData | n
     // If not found directly, it might be part of a group but stored under a different key
     // Perform a query for the grouping
     const q = query(
-      collection(db, 'tafsir'),
+      collection(db!, 'tafsir'),
       where('ayah_keys', 'array-contains', verseKey)
     );
 
@@ -88,7 +88,7 @@ export async function getTafsirBySurah(surahNumber: number): Promise<TafsirData[
       return [];
     }
     const q = query(
-      collection(db, 'tafsir'),
+      collection(db!, 'tafsir'),
       where('surah', '==', surahNumber)
     );
 

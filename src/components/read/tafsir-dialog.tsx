@@ -34,7 +34,7 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
         .then((data) => {
           if (data) {
             setTafsir({
-              id: 0, // Not provided by Firestore data usually
+              id: 0,
               surah: data.surah,
               verse: data.ayah,
               text: data.text,
@@ -56,13 +56,14 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
 
   const isOpen = !!verseKey;
 
-  // Calculate the display title based on whether it's a group
   const displayTitle = tafsir?.ayah_keys && tafsir.ayah_keys.length > 1
     ? `Tafsir Ibn Kathir for Verses ${tafsir.ayah_keys[0]} - ${tafsir.ayah_keys[tafsir.ayah_keys.length - 1]}`
     : `Tafsir Ibn Kathir for Verse ${verseKey}`;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) onOpenChange(false);
+    }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>

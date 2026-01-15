@@ -617,25 +617,23 @@ export function QuranReader({ slug, setCurrentPage, isMushafMode = false, curren
                 )}
                 <div className="mt-12 pt-8 border-t space-y-4 text-center">
                   {/* Pagination Controls */}
-                  {isMushafMode && (
-                    <div className="flex justify-center items-center gap-4 mb-4">
-                      <Button
-                        variant="secondary"
-                        disabled={currentPage <= 1}
-                        onClick={() => handlePageChange(currentPage - 1)}
-                      >
-                        Previous Page
-                      </Button>
-                      <span className="font-bold">Page {currentPage}</span>
-                      <Button
-                        variant="secondary"
-                        disabled={currentPage >= 604}
-                        onClick={() => handlePageChange(currentPage + 1)}
-                      >
-                        Next Page
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex justify-center items-center gap-4 mb-4">
+                    <Button
+                      variant="secondary"
+                      disabled={currentPage <= 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      Previous Page
+                    </Button>
+                    <span className="font-bold">Page {currentPage}</span>
+                    <Button
+                      variant="secondary"
+                      disabled={currentPage >= 604}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      Next Page
+                    </Button>
+                  </div>
 
                   {/* Surah Completion & Navigation */}
                   {isSurahComplete ? (

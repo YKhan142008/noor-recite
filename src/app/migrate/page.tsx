@@ -27,19 +27,32 @@ export default function MigratePage() {
       const batchSize = 250;
 
       for (let i = 0; i < entries.length; i += batchSize) {
+        if (!db) {
+          throw new Error('Firestore not initialized. Check your API keys.');
+        }
         const batch = writeBatch(db);
         const chunk = entries.slice(i, i + batchSize);
 
         chunk.forEach(([verseKey, entry]: [string, any]) => {
           const [surah, ayah] = verseKey.split(':').map(Number);
-          const docRef = doc(db, 'tafsir', verseKey);
+          const docRef = doc(db!, 'tafsir', verseKey);
+
+          // Resolve pointer if entry is a string
+          let finalEntry = entry;
+          if (typeof entry === 'string') {
+            finalEntry = data[entry];
+            if (!finalEntry) {
+              console.warn(`Pointer target not found: ${entry} for ${verseKey}`);
+              finalEntry = { text: '', ayah_keys: [verseKey] };
+            }
+          }
 
           batch.set(docRef, {
             verse_key: verseKey,
             surah,
             ayah,
-            text: entry.text || '', // Ensure no undefined
-            ayah_keys: entry.ayah_keys || [verseKey],
+            text: finalEntry.text || '',
+            ayah_keys: finalEntry.ayah_keys || [verseKey],
             language: 'en',
             author: 'Ibn Kathir',
             created_at: new Date()
