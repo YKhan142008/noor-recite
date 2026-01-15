@@ -109,9 +109,11 @@ export default function ReadPage({ params }: ReadPageProps) {
               <h2 className="font-headline text-lg ml-2">{currentSurah?.englishName}</h2>
             </div>
 
-            <div>
-              <span className="text-sm text-muted-foreground">Page {currentPage}</span>
-            </div>
+            {isMushafMode && (
+              <div>
+                <span className="text-sm text-muted-foreground">Page {currentPage}</span>
+              </div>
+            )}
           </div>
         </div>
 
