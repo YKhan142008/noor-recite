@@ -33,10 +33,10 @@ export interface ReadingActivity {
 }
 
 export interface Translation {
-    id: string; 
-    language: string;
-    name: string;
-    author_name: string;
+  id: string;
+  language: string;
+  name: string;
+  author_name: string;
 }
 
 export interface Bookmark {
@@ -52,4 +52,5 @@ export interface Tafsir {
   surah: number;
   verse: number;
   text: string;
+  ayah_keys?: string[];
 }

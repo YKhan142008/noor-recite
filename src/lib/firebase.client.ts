@@ -19,8 +19,9 @@ let db: Firestore | undefined;
 let auth: Auth | undefined;
 
 const hasKeys =
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-  !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('placeholder');
+  !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+  !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('placeholder') &&
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== '';
 
 if (hasKeys) {
   try {

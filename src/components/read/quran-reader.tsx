@@ -55,20 +55,12 @@ export function QuranReader({ slug, setCurrentPage, isMushafMode = false, curren
   /* Calculate visible verses based on pagination */
   const visibleVerses = selectedSurah ? (isMushafMode ? (() => {
     // In Mushaf mode, filter by page
-    // First, check if we have page info for this Surah/Page
-    // Note: quranPages might be incomplete, so fallback to all if not found?
-    // Or fallback to "Surah Mode" if no page data.
-
-    // Let's check if the current surah has ANY page data
     const hasPageData = quranPages.some(p => p.surah === selectedSurah.id);
 
-    if (!hasPageData) return selectedSurah.verses; // Fallback for Surahs not in JSON yet
+    // If no page data is found for this surah, fallback to showing all verses
+    if (!hasPageData) return selectedSurah.verses;
 
     // Get specific range for this page
-    // Note: currentPage passed from parent might be global page number or local?
-    // The parent just passes '19' etc. `quranPages` uses global page numbers (e.g. Surah 2 starts on Page 2).
-    // So `currentPage` MUST be the global Quran page number.
-
     const pageRange = quranPages.find(p => p.surah === selectedSurah.id && p.page === currentPage);
 
     if (pageRange) {
@@ -78,8 +70,9 @@ export function QuranReader({ slug, setCurrentPage, isMushafMode = false, curren
       });
     }
 
-    // If currentPage corresponds to this surah but logic failed, return all or handle edge case.
-    // Often, if valid page but no range found (e.g. transitioning), fallback to all is safest to avoid empty screen.
+    // If we're in Mushaf mode but the currentPage doesn't match any range for this Surah,
+    // it likely means the pagination is out of sync. Return all verses to avoid empty screen.
+    console.warn(`No page range found for Surah ${selectedSurah.id} on Page ${currentPage}. Falling back to all verses.`);
     return selectedSurah.verses;
 
   })() : selectedSurah.verses) : [];
@@ -122,20 +115,27 @@ export function QuranReader({ slug, setCurrentPage, isMushafMode = false, curren
     if (isPlaying) stopPlayback();
 
     try {
+      console.log(`Fetching content for Surah ${surahId}...`);
       const response = await fetch(`/api/quran?surah=${surahId}`);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response from API.' }));
-        throw new Error(errorData.message || 'Failed to fetch surah content');
+        console.error(`API error for Surah ${surahId}:`, errorData);
+        throw new Error(errorData.message || `Failed to fetch surah content (Status: ${response.status})`);
       }
 
       const data = await response.json();
 
-      if (!data.verses) {
+      if (!data.verses || data.verses.length === 0) {
+        console.error(`No verses returned for Surah ${surahId}:`, data);
         throw new Error('API did not return any verses.');
       }
 
       const surahInfo = allSurahs.find(s => s.id.toString() === surahId);
-      if (!surahInfo) throw new Error('Surah not found in metadata');
+      if (!surahInfo) {
+        console.error(`Surah metadata not found for ID: ${surahId}`);
+        throw new Error('Surah not found in metadata');
+      }
 
       const newSelectedSurah = {
         id: surahInfo.id,
@@ -145,6 +145,7 @@ export function QuranReader({ slug, setCurrentPage, isMushafMode = false, curren
         total_verses: surahInfo.total_verses,
       };
       setSelectedSurah(newSelectedSurah);
+      console.log(`Successfully loaded Surah ${surahId}: ${surahInfo.englishName} with ${data.verses.length} verses.`);
 
       setCurrentVerseKey(null);
 
@@ -160,6 +161,7 @@ export function QuranReader({ slug, setCurrentPage, isMushafMode = false, curren
       }
 
     } catch (error) {
+      console.error(`Critical error loading Surah ${surahId}:`, error);
       toast({
         variant: 'destructive',
         title: 'Failed to load Surah',

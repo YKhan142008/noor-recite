@@ -26,7 +26,6 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
 
   useEffect(() => {
     if (verseKey) {
-      const [surah, verse] = verseKey.split(':');
       setIsLoading(true);
       setError(null);
       setTafsir(null);
@@ -34,12 +33,13 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
       getTafsirByVerse(verseKey)
         .then((data) => {
           if (data) {
-            // Adapt TafsirData to compatible format if needed or update Types
             setTafsir({
+              id: 0, // Not provided by Firestore data usually
               surah: data.surah,
               verse: data.ayah,
-              text: data.text
-            } as any);
+              text: data.text,
+              ayah_keys: data.ayah_keys
+            });
           } else {
             setError('could not find tafsir');
           }
@@ -56,15 +56,20 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
 
   const isOpen = !!verseKey;
 
+  // Calculate the display title based on whether it's a group
+  const displayTitle = tafsir?.ayah_keys && tafsir.ayah_keys.length > 1
+    ? `Tafsir Ibn Kathir for Verses ${tafsir.ayah_keys[0]} - ${tafsir.ayah_keys[tafsir.ayah_keys.length - 1]}`
+    : `Tafsir Ibn Kathir for Verse ${verseKey}`;
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            Tafsir Ibn Kathir for Verse {verseKey}
+            {isLoading ? 'Loading Tafsir...' : displayTitle}
           </DialogTitle>
           <DialogDescription>
-            Commentary and explanation for the selected verse.
+            Commentary and explanation for the selected {tafsir?.ayah_keys && tafsir.ayah_keys.length > 1 ? 'verses' : 'verse'}.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
@@ -78,7 +83,12 @@ export function TafsirDialog({ verseKey, onOpenChange }: TafsirDialogProps) {
                 <Skeleton className="h-5 w-3/4" />
               </div>
             )}
-            {error && <p className="text-destructive">{error}</p>}
+            {error && (
+              <div className="flex flex-col items-center justify-center h-full py-10 text-center">
+                <div className="text-destructive font-medium text-lg mb-2">{error}</div>
+                <p className="text-muted-foreground">The requested commentary is currently unavailable.</p>
+              </div>
+            )}
             {tafsir && (
               <div
                 className="text-base leading-relaxed font-body [&>p]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-2"
