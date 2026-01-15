@@ -394,6 +394,20 @@ export function QuranReader({ slug, setCurrentPage, isMushafMode = false, curren
     };
   }, [handleScroll]);
 
+  /* Handle mode switch scroll sync */
+  useEffect(() => {
+    if (!isMushafMode && selectedSurah && isClient) {
+      // If we just switched from Mushaf to Translation,
+      // jump to the first verse of the current page to maintain context.
+      const pageInfo = quranPages.find(p => p.surah === selectedSurah.id && p.page === currentPage);
+      if (pageInfo) {
+        const firstVerseKey = `${selectedSurah.id}:${pageInfo.from}`;
+        // Small timeout to allow the layout to settle after mode change
+        setTimeout(() => handleAyahJump(firstVerseKey), 100);
+      }
+    }
+  }, [isMushafMode, selectedSurah, currentPage, isClient]);
+
   const handleMarkAsComplete = (isComplete: boolean) => {
     if (selectedSurah) {
       updateProgress(selectedSurah.id, isComplete ? 100 : 0);
